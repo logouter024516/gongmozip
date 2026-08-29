@@ -140,7 +140,19 @@ function HomeBody() {
       .from('items')
       .select('*, participants:item_participants(user_id)')
       .order('created_at', { ascending: false })
-    if (!error) setItems(data ?? [])
+    if (error) { setLoading(false); return }
+    const items = data ?? []
+    // 집결 명단(닉네임/도착) 병합
+    const { data: roster } = await supabase
+      .from('item_participant_list')
+      .select('*')
+      .in('item_id', items.map((i) => i.id).filter(Boolean))
+    const byItem = {}
+    for (const r of roster ?? []) {
+      if (!byItem[r.item_id]) byItem[r.item_id] = []
+      byItem[r.item_id].push(r)
+    }
+    setItems(items.map((i) => ({ ...i, participants: byItem[i.id] ?? i.participants ?? [] })))
     setLoading(false)
   }
 

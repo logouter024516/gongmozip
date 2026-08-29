@@ -5,13 +5,16 @@ import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useState, useEffect } from 'react'
 import { totalUnread, subscribeIncoming } from '../lib/chat'
+import { unreadNotifications, subscribeNotifications } from '../lib/notify'
+import { useTheme } from '../lib/theme'
 
 export default function Layout({ children }) {
   const { user, profile, signOut } = useAuth() // 로그인 정보와 로그아웃 함수
   const navigate = useNavigate()               // 로그아웃 후 화면 이동
   const location = useLocation()
-  const [theme, setTheme] = useState(() => document.documentElement.getAttribute('data-theme') || 'light')
+  const { resolved: theme, cycle } = useTheme()
   const [unread, setUnread] = useState(0)
+  const [ncount, setNcount] = useState(0)
 
   // 쪽지 안읽음 개수: 진입 시 + 실시간 수신 시 갱신
   useEffect(() => {
@@ -27,13 +30,20 @@ export default function Layout({ children }) {
     return () => { if (sub) sub.unsubscribe() }
   }, [user?.id, location.pathname])
 
-  // 테마(라이트/다크) 전환: html 태그와 브라우저 저장소에 반영
-  function toggleTheme() {
-    const next = theme === 'light' ? 'dark' : 'light'
-    setTheme(next)
-    document.documentElement.setAttribute('data-theme', next)
-    try { localStorage.setItem('gmz-theme', next) } catch (e) { /* 무시 */ }
-  }
+  // 알림 안읽음 개수: 진입 시 + 실시간 도착 시 갱신
+  useEffect(() => {
+    let sub = null
+    async function refresh() {
+      if (!user) { setNcount(0); return }
+      const c = await unreadNotifications()
+      setNcount(c)
+      if (!sub) {
+        sub = subscribeNotifications(user.id, () => { setNcount((prev) => prev + 1) })
+      }
+    }
+    refresh()
+    return () => { if (sub) sub.unsubscribe() }
+  }, [user?.id, location.pathname])
 
   return (
     <div>
@@ -71,8 +81,17 @@ export default function Layout({ children }) {
               {unread > 0 && <span className="nav-badge">{unread > 99 ? '99+' : unread}</span>}
             </NavLink>
 
-            {/* 테마 토글 버튼 */}
-            <button type="button" className="icon-btn" onClick={toggleTheme} aria-label="테마 전환" title={`${theme === 'light' ? '다크' : '라이트'} 모드`}>
+            {/* 알림 — 안읽음 배지 */}
+            <NavLink to="/notifications" className="icon-btn" aria-label="알림" title="알림">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M6 9a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+                <path d="M10 20a2 2 0 0 0 4 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+              </svg>
+              {ncount > 0 && <span className="nav-badge">{ncount > 99 ? '99+' : ncount}</span>}
+            </NavLink>
+
+            {/* 테마 토글 버튼: 라이트 → 다크 → 시스템 순환 */}
+            <button type="button" className="icon-btn" onClick={cycle} aria-label="테마 전환" title={`현재 ${theme === 'light' ? '라이트' : '다크'} 모드 · 탭하면 순환`}>
               {theme === 'light' ? (
                 // 달 아이콘(라이트 → 다크)
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
@@ -145,6 +164,13 @@ export default function Layout({ children }) {
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2"/><line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
           </span>
           <span>검색</span>
+        </NavLink>
+        <NavLink to="/notifications" className="bottom-tab">
+          <span className="bottom-tab-icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6 9a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/><path d="M10 20a2 2 0 0 0 4 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/></svg>
+            {ncount > 0 && <span className="nav-badge nav-badge-tab">{ncount > 99 ? '99+' : ncount}</span>}
+          </span>
+          <span>알림</span>
         </NavLink>
         <NavLink to="/settings" className="bottom-tab">
           <span className="bottom-tab-icon" aria-hidden="true">

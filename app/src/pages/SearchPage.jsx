@@ -75,6 +75,20 @@ function SearchBody() {
       }
 
       if (cancelled) return
+      // 집결 명단(닉네임/도착) 보강 — AI/키워드 양쪽 결과 모두
+      const ids = (out?.items ?? []).map((i) => i.id).filter(Boolean)
+      if (ids.length > 0) {
+        const { data: roster } = await supabase
+          .from('item_participant_list')
+          .select('*')
+          .in('item_id', ids)
+        const byItem = {}
+        for (const r of roster ?? []) {
+          if (!byItem[r.item_id]) byItem[r.item_id] = []
+          byItem[r.item_id].push(r)
+        }
+        out.items = (out.items ?? []).map((i) => ({ ...i, participants: byItem[i.id] ?? i.participants ?? [] }))
+      }
       setItems(out?.items ?? [])
       setRentals(out?.rentals ?? [])
       setMode(modeNow)

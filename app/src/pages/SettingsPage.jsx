@@ -7,6 +7,7 @@ import Layout from '../components/Layout'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { getBrowserPosition, nearestRegion } from '../lib/location'
+import { useTheme } from '../lib/theme'
 
 function Avatar({ name }) {
   // 이름의 첫 글자를 브랜드 배경 원에 표시
@@ -23,7 +24,7 @@ function SettingsBody() {
   const [lat, setLat] = useState(profile?.latitude ?? null)
   const [lng, setLng] = useState(profile?.longitude ?? null)
   const [locBusy, setLocBusy] = useState(false)
-  const [theme, setTheme] = useState(() => document.documentElement.getAttribute('data-theme') || 'light')
+  const { pref: themePref, resolved: themeResolved, setPref: setTheme } = useTheme()
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
@@ -65,14 +66,6 @@ function SettingsBody() {
     setBusy(false)
     if (err) setError(err.message)
     else { setSaved(true); setTimeout(() => setSaved(false), 2000) }
-  }
-
-  // 테마 토글
-  function toggleTheme() {
-    const next = theme === 'light' ? 'dark' : 'light'
-    setTheme(next)
-    document.documentElement.setAttribute('data-theme', next)
-    try { localStorage.setItem('gmz-theme', next) } catch (e) { /* 무시 */ }
   }
 
   const displayName = profile?.nickname || user?.email?.split('@')[0] || '사용자'
@@ -150,12 +143,16 @@ function SettingsBody() {
           <div className="settings-row">
             <div>
               <div className="settings-label">화면 테마</div>
-              <div className="settings-desc">밝은 화면 또는 어두운 화면을 선택해요.</div>
+              <div className="settings-desc">
+                {themePref === 'system' && '기기(시스템) 설정을 따라가요.'}
+                {themeResolved === 'dark' ? '어두운 화면이 적용 중이에요.' : '밝은 화면이 적용 중이에요.'}
+              </div>
             </div>
-            {/* 세그먼트 토글 */}
+            {/* 세그먼트 토글: 라이트 / 다크 / 시스템 */}
             <div className="theme-seg" role="radiogroup" aria-label="화면 테마">
-              <button type="button" className={theme === 'light' ? 'seg active' : 'seg'} onClick={() => theme !== 'light' && toggleTheme()}>라이트</button>
-              <button type="button" className={theme === 'dark' ? 'seg active' : 'seg'} onClick={() => theme !== 'dark' && toggleTheme()}>다크</button>
+              <button type="button" className={themePref === 'light' ? 'seg active' : 'seg'} onClick={() => setTheme('light')}>라이트</button>
+              <button type="button" className={themePref === 'dark' ? 'seg active' : 'seg'} onClick={() => setTheme('dark')}>다크</button>
+              <button type="button" className={themePref === 'system' ? 'seg active' : 'seg'} onClick={() => setTheme('system')}>시스템</button>
             </div>
           </div>
         </div>

@@ -14,8 +14,9 @@
       ;(function () {
         try {
           const saved = localStorage.getItem('gmz-theme')
+          const useSystem = !saved || saved === 'system'
           const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-          const theme = saved || (prefersDark ? 'dark' : 'light')
+          const theme = saved === 'dark' || (useSystem && prefersDark) ? 'dark' : 'light'
           document.documentElement.setAttribute('data-theme', theme)
         } catch (e) {
           /* localStorage 접근 실패 시 기본(light) 유지 */

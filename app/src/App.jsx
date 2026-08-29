@@ -12,6 +12,7 @@ import SettingsPage from './pages/SettingsPage'
 import RecordsPage from './pages/RecordsPage'
 import ChatListPage from './pages/ChatListPage'
 import ChatThreadPage from './pages/ChatThreadPage'
+import NotificationsPage from './pages/NotificationsPage'
 import ToastHost from './components/ToastHost'
 
 export default function App() {
@@ -25,6 +26,7 @@ export default function App() {
         <Route path="/search" element={<SearchPage />} />
         <Route path="/chat" element={<ChatListPage />} />
         <Route path="/chat/:id" element={<ChatThreadPage />} />
+        <Route path="/notifications" element={<NotificationsPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />

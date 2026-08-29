@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useState } from 'react'
-import { MapPin, Users, Pencil, Trash2, MessageCircle } from 'lucide-react'
+import { MapPin, Users, Pencil, Trash2, MessageCircle, CheckCircle2, MapPinOff } from 'lucide-react'
 import CardImage from './CardImage'
 import Modal from './Modal'
 import { toast } from '../lib/toast'
@@ -17,12 +17,22 @@ import { openThread } from '../lib/chat'
 const CAT = { '식품·신선': '식품·신선', '생활용품': '생활용품', '도서·산간': '도서·산간', '기타': '기타' }
 const CATEGORIES = Object.keys(CAT)
 
+// 'YYYY-MM-DDTHH:mm' (datetime-local) → 표시 문자열
+function fmtPickup(value, spot) {
+  if (!value) return spot ? `집결 장소: ${spot}` : null
+  const d = new Date(value)
+  const date = `${d.getMonth() + 1}.${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+  return spot ? `${date} · ${spot}` : `${date}에 집결`
+}
+
 export default function ItemCard({ item, onChanged }) {
   const { user } = useAuth()
   const navigate = useNavigate()
   const [busy, setBusy] = useState(false)
   const [editing, setEditing] = useState(false)
   const [chatting, setChatting] = useState(false)
+  const [closing, setClosing] = useState(false)
+  const [arriving, setArriving] = useState(false)
 
   // 참여자 수 + 목표 인원(진행률 계산)
   const participantCount = item.participants?.length ?? 0
@@ -88,7 +98,53 @@ export default function ItemCard({ item, onChanged }) {
     setChatting(false)
   }
 
+  // 주최자가 모집 마감 (목표 미달이라도 일찍 마감 가능)
+  async function closeItem() {
+    if (!confirm('모집을 마감할까요? 더 이상 참여할 수 없고 함께배송 단계로 넘어갑니다.')) return
+    setClosing(true)
+    const { error: err } = await supabase
+      .from('items')
+      .update({ status: 'closed', closed_at: new Date().toISOString() })
+      .eq('id', item.id)
+      .eq('created_by', user.id)
+    setClosing(false)
+    if (err) { toast('마감하지 못했어요', { type: 'error' }); return }
+    toast('모집을 마감했어요!')
+    if (onChanged) onChanged()
+  }
+
+  // 참여자 도착 체크
+  async function markArrival() {
+    if (!user) return
+    setArriving(true)
+    await supabase
+      .from('item_participants')
+      .update({ arrived_at: new Date().toISOString() })
+      .eq('item_id', item.id)
+      .eq('user_id', user.id)
+    setArriving(false)
+    toast('도착을 기록했어요. 주최자에게 알림이 가요.')
+    if (onChanged) onChanged()
+  }
+
+  // 주최자 도착 체크
+  async function markOrganizerArrival() {
+    if (!user) return
+    setArriving(true)
+    await supabase
+      .from('items')
+      .update({ organizer_arrived_at: new Date().toISOString() })
+      .eq('id', item.id)
+      .eq('created_by', user.id)
+    setArriving(false)
+    toast('도착을 기록했어요.')
+    if (onChanged) onChanged()
+  }
+
   const open = item.status === 'open'
+  const closed = !open
+  const myParticipant = item.participants?.find?.((p) => p.user_id === user?.id)
+  const arrivedCount = (item.participants ?? []).filter((p) => p.arrived_at).length
 
   return (
     <article className={`card l-card${open ? '' : ' l-card-closed'}`}>
@@ -149,7 +205,42 @@ export default function ItemCard({ item, onChanged }) {
           )
         )}
         {!open && (
-          <div className="l-closed-note">이번 모집은 마감됐어요</div>
+          <div className="l-closed-note">
+            <strong>모집 완료 · 함께배송 단계</strong>
+            {fmtPickup(item.pickup_at, item.pickup_spot) && (
+              <span className="l-pickup-line"><MapPin size={13} strokeWidth={2} /> {fmtPickup(item.pickup_at, item.pickup_spot)}</span>
+            )}
+            {!item.pickup_spot && isOwner && (
+              <span className="l-pickup-hint">잊지 말고 집결 장소·시각을 정해주세요. (수정)</span>
+            )}
+          </div>
+        )}
+
+        {/* 함께배송 집결 현황 (마감 후) */}
+        {closed && participantCount > 0 && (
+          <div className="l-roster">
+            <div className="l-roster-head">
+              <span><CheckCircle2 size={13} strokeWidth={2} /> 집결 현황</span>
+              <strong>{arrivedCount}명 / {participantCount}명 도착</strong>
+            </div>
+            <div className="l-roster-list">
+              {item.participants.map((p, i) => (
+                <span key={p.user_id ?? i} className={`l-roster-item${p.arrived_at ? ' arrived' : ''}`}>
+                  <span className="l-roster-name">{p.nickname || '이웃'}</span>
+                  {p.arrived_at ? <CheckCircle2 size={12} strokeWidth={2.4} /> : <MapPinOff size={12} strokeWidth={2.2} />}
+                </span>
+              ))}
+            </div>
+            {(user && myParticipant && !myParticipant.arrived_at) ? (
+              <button type="button" className="btn btn-sm btn-block" onClick={markArrival} disabled={arriving}>
+                {arriving ? '기록 중…' : '도착했어요'}
+              </button>
+            ) : (isOwner && !item.organizer_arrived_at) ? (
+              <button type="button" className="btn btn-sm btn-block" onClick={markOrganizerArrival} disabled={arriving}>
+                {arriving ? '기록 중…' : '주최자 도착'}
+              </button>
+            ) : null}
+          </div>
         )}
 
         {/* 등록자에게 쪽지(문의) — 본인 제외 */}
@@ -163,6 +254,11 @@ export default function ItemCard({ item, onChanged }) {
         {/* 만든 이 전용: 수정/삭제 */}
         {isOwner && (
           <div className="owner-actions">
+            {open && (
+              <button type="button" className="btn btn-sm btn-outline" onClick={closeItem} disabled={closing}>
+                <CheckCircle2 size={14} strokeWidth={2.2} /> {closing ? '마감 중…' : '모집 마감'}
+              </button>
+            )}
             <button type="button" className="btn btn-sm btn-outline" onClick={() => setEditing(true)}>
               <Pencil size={14} strokeWidth={2.2} /> 수정
             </button>
@@ -180,6 +276,14 @@ export default function ItemCard({ item, onChanged }) {
 }
 
 // 내 공동구매 수정 모달
+function toLocalInput(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  const p = (n) => String(n).padStart(2, '0')
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`
+}
+
 function EditItemModal({ open, item, onClose, onSaved }) {
   const [name, setName] = useState(item.name)
   const [price, setPrice] = useState(String(item.price ?? ''))
@@ -189,6 +293,8 @@ function EditItemModal({ open, item, onClose, onSaved }) {
   const [region, setRegion] = useState(item.region ?? '')
   const [category, setCategory] = useState(item.category || '기타')
   const [imageUrl, setImageUrl] = useState(item.image_url ?? '')
+  const [pickupSpot, setPickupSpot] = useState(item.pickup_spot ?? '')
+  const [pickupAt, setPickupAt] = useState(toLocalInput(item.pickup_at))
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
@@ -208,6 +314,8 @@ function EditItemModal({ open, item, onClose, onSaved }) {
         target_count: Number(target) || 4,
         category,
         image_url: imageUrl.trim(),
+        pickup_spot: pickupSpot.trim(),
+        pickup_at: pickupAt ? new Date(pickupAt).toISOString() : null,
       })
       .eq('id', item.id)
     setBusy(false)
@@ -256,6 +364,19 @@ function EditItemModal({ open, item, onClose, onSaved }) {
         <div className="field">
           <label htmlFor={`iregion-${item.id}`}>배송 지역(도서산간 함께배송)</label>
           <input id={`iregion-${item.id}`} value={region} onChange={(e) => setRegion(e.target.value)} placeholder="예: 제주 / 강원 산간" />
+        </div>
+        <div className="field-grid">
+          <div className="field">
+            <label htmlFor={`ipickup-${item.id}`}>집결 장소(선택)</label>
+            <input id={`ipickup-${item.id}`} value={pickupSpot} onChange={(e) => setPickupSpot(e.target.value)} placeholder="예: 동네 마트 앞" />
+          </div>
+          <div className="field">
+            <label htmlFor={`ipickuptime-${item.id}`}>집결 시각(선택)</label>
+            <input id={`ipickuptime-${item.id}`} type="datetime-local" value={pickupAt} onChange={(e) => setPickupAt(e.target.value)} />
+          </div>
+        </div>
+        <div className="field well">
+          <span className="field-hint">모집이 마감되면 참여자에게 집결 안내 알림이 가요. 함께배송 수령을 위해 꼭 정해주세요.</span>
         </div>
         {error && <div className="alert alert-error" role="alert">{error}</div>}
         <button type="submit" className="btn btn-block" disabled={busy}>
