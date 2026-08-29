@@ -1,0 +1,32 @@
+<!doctype html>
+<!-- index.html — 앱의 HTML 진입점. SPA이므로 화면 렌더링은 React가 담당한다. -->
+<html lang="ko" data-theme="light">
+  <head>
+    <meta charset="UTF-8" />
+    <!-- 반응형 뷰포트: 모바일에서도 올바르게 표시되도록 한다 -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <!-- 페이지 제목: 서비스명 공모집 -->
+    <title>공모집 — 소규모 가구 공동구매 & 대여 매칭</title>
+    <script>
+      // 테마 초기 로드 스크립트
+      // 페이지가 그려지기 전에 localStorage에 저장된 테마를 적용해 깜빡임을 방지한다
+      ;(function () {
+        try {
+          const saved = localStorage.getItem('gmz-theme')
+          const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches
+          const theme = saved || (prefersDark ? 'dark' : 'light')
+          document.documentElement.setAttribute('data-theme', theme)
+        } catch (e) {
+          /* localStorage 접근 실패 시 기본(light) 유지 */
+        }
+      })()
+    </script>
+  </head>
+  <body>
+    <!-- React가 이 div 안에 화면을 렌더링한다 -->
+    <div id="root"></div>
+    <!-- React 진입점 스크립트 -->
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

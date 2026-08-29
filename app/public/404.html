@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <title>공모집</title>
+    <script>
+      // GitHub Pages SPA 폴백
+      // BrowserRouter의 직접 URL(예: /records) 접근 시 index.html로 리디렉트해
+      // React 라우터가 경로를 다시 처리하게 한다.
+      ;(function () {
+        var l = window.location
+        var segmentCount = 0
+        l.replace(
+          l.protocol +
+            '//' +
+            (l.hostname || '') +
+            (l.port ? ':' + l.port : '') +
+            '/' +
+            l.pathname
+              .split('/')
+              .slice(segmentCount + 1)
+              .join('/') +
+            l.search
+        )
+      })()
+    </script>
+  </head>
+  <body>
+    <p>페이지로 이동 중…</p>
+  </body>
+</html>

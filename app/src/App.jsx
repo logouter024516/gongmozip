@@ -1,0 +1,31 @@
+// App.jsx — 라우팅 설정(어떤 주소에서 어떤 화면을 보여줄지)
+import { Routes, Route } from 'react-router-dom'
+import { AuthProvider } from './context/AuthContext'
+import LoginPage from './pages/LoginPage'
+import SignupPage from './pages/SignupPage'
+import HomePage from './pages/HomePage'
+import RentPage from './pages/RentPage'
+import SearchPage from './pages/SearchPage'
+import SettingsPage from './pages/SettingsPage'
+import RecordsPage from './pages/RecordsPage'
+import ToastHost from './components/ToastHost'
+
+export default function App() {
+  return (
+    // AuthProvider로 전체를 감싸서 모든 화면에서 로그인 상태를 쓸 수 있게 한다
+    <AuthProvider>
+      <Routes>
+        <Route path="/" element={<HomePage />} />
+        <Route path="/rent" element={<RentPage />} />
+        <Route path="/records" element={<RecordsPage />} />
+        <Route path="/search" element={<SearchPage />} />
+        <Route path="/settings" element={<SettingsPage />} />
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/signup" element={<SignupPage />} />
+        {/* 그 외 경로는 홈으로 */}
+        <Route path="*" element={<HomePage />} />
+      </Routes>
+      <ToastHost />
+    </AuthProvider>
+  )
+}
