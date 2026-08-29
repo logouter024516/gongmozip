@@ -8,6 +8,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { getBrowserPosition, nearestRegion } from '../lib/location'
 import { useTheme } from '../lib/theme'
+import { findProfanity } from '../lib/profanity'
 
 function Avatar({ name }) {
   // 이름의 첫 글자를 브랜드 배경 원에 표시
@@ -55,6 +56,8 @@ function SettingsBody() {
   async function saveProfile(e) {
     e.preventDefault()
     if (!profile) return
+    const bad = findProfanity(nickname)
+    if (bad) { setError(`'${bad}'는 사용하기 어려운 표현이에요. 닉네임을 바꿔주세요.`); return }
     setBusy(true)
     setError('')
     const patch = { nickname, location }

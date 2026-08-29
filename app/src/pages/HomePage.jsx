@@ -12,6 +12,7 @@ import { useAuth } from '../context/AuthContext'
 import { toast } from '../lib/toast'
 import ImageUpload from '../components/ImageUpload'
 import { getBrowserPosition, regionCoords, userRegion } from '../lib/location'
+import { findProfanity } from '../lib/profanity'
 
 const CATEGORIES = ['전체', '식품·신선', '생활용품', '도서·산간', '기타']
 
@@ -24,6 +25,7 @@ function CreateItemForm({ user, profile, onCreated }) {
   const [target, setTarget] = useState('4')
   const [category, setCategory] = useState('식품·신선')
   const [imageUrl, setImageUrl] = useState('')
+  const [address, setAddress] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [coords, setCoords] = useState(null)
@@ -38,6 +40,8 @@ function CreateItemForm({ user, profile, onCreated }) {
   async function handleSubmit(e) {
     e.preventDefault()
     if (!name.trim()) return
+    const bad = findProfanity(name) || findProfanity(address)
+    if (bad) { setError(`'${bad}'는 사용하기 어려운 표현이에요. 다른 문구로 바꿔주세요.`); return }
     setBusy(true)
     setError('')
     const region = userRegion(profile)
@@ -61,12 +65,13 @@ function CreateItemForm({ user, profile, onCreated }) {
         target_count: Number(target) || 4,
         category,
         image_url: imageUrl.trim(),
+        address: address.trim(),
         created_by: user.id,
         status: 'open',
       })
     setBusy(false)
     if (err) { setError(err.message); return }
-    setName(''); setPrice(''); setShipping(''); setQty('1'); setTarget('4'); setCategory('식품·신선'); setImageUrl(''); setShow(false)
+    setName(''); setPrice(''); setShipping(''); setQty('1'); setTarget('4'); setCategory('식품·신선'); setImageUrl(''); setAddress(''); setShow(false)
     toast('공동구매를 등록했어요!')
     if (onCreated) onCreated()
   }
@@ -113,6 +118,10 @@ function CreateItemForm({ user, profile, onCreated }) {
             <ImageUpload value={imageUrl} onChange={setImageUrl} hint="사진을 올리면 자동으로 표시돼요. 비우면 색상 카드가 나와요." />
           </div>
           <div className="field">
+            <label htmlFor="iaddr">상세 위치(선택)</label>
+            <input id="iaddr" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="예: 제주시 연동 330 한라마트 앞 / 아파트 동·호수" />
+          </div>
+          <div className="field">
             <label>배송 지역</label>
             {userRegion(profile)
               ? <p className="field-hint"><strong>{userRegion(profile)}</strong> · 내 위치(설정) 기준으로 자동 등록돼요. <a href="/settings">변경</a></p>
@@ -143,10 +152,11 @@ function HomeBody() {
     if (error) { setLoading(false); return }
     const items = data ?? []
     // 집결 명단(닉네임/도착) 병합
+    const itemIds = items.map((i) => i.id).filter(Boolean)
     const { data: roster } = await supabase
       .from('item_participant_list')
       .select('*')
-      .in('item_id', items.map((i) => i.id).filter(Boolean))
+      .in('item_id', itemIds.length ? itemIds : ['00000000-0000-0000-0000-000000000000'])
     const byItem = {}
     for (const r of roster ?? []) {
       if (!byItem[r.item_id]) byItem[r.item_id] = []

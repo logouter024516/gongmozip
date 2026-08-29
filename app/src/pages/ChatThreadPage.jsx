@@ -99,7 +99,7 @@ function ThreadBody() {
       setBody('')
       await sendMessage(id, myId, text)
     } catch (err) {
-      toast('메시지를 보내지 못했어요', { type: 'error' })
+      toast(err?.message || '메시지를 보내지 못했어요', { type: 'error' })
       setMessages((prev) => prev.filter((m) => m.body !== text || m.sender_id !== myId))
     }
     setSending(false)

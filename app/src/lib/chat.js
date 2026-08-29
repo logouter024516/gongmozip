@@ -3,6 +3,7 @@
 // DB 스키마/RLS는 supabase/migrations/20260830100000_chat_and_item_coords.sql 참조.
 
 import { supabase } from './supabase'
+import { findProfanity } from './profanity'
 
 // 상대와의 채팅 스레드를 열고 돌려준다.
 // 같은 상품(공동구매)/대여에 대한 스레드가 있으면 재사용한다 (postgres 함수에서 처리).
@@ -70,6 +71,8 @@ export async function markThreadRead(threadId, userId) {
 export async function sendMessage(threadId, senderId, body) {
   const text = String(body || '').trim()
   if (!text) return
+  const bad = findProfanity(text)
+  if (bad) throw new Error(`'${bad}'는 사용하기 어려운 표현이에요. 다른 문구로 바꿔주세요.`)
   const { error } = await supabase
     .from('chat_messages')
     .insert({ thread_id: threadId, sender_id: senderId, body: text })

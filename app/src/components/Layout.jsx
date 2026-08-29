@@ -5,7 +5,8 @@ import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { useState, useEffect } from 'react'
 import { totalUnread, subscribeIncoming } from '../lib/chat'
-import { unreadNotifications, subscribeNotifications } from '../lib/notify'
+import { unreadNotifications, subscribeNotifications, NOTIFY_TYPE } from '../lib/notify'
+import { toast } from '../lib/toast'
 import { useTheme } from '../lib/theme'
 
 export default function Layout({ children }) {
@@ -38,7 +39,12 @@ export default function Layout({ children }) {
       const c = await unreadNotifications()
       setNcount(c)
       if (!sub) {
-        sub = subscribeNotifications(user.id, () => { setNcount((prev) => prev + 1) })
+        sub = subscribeNotifications(user.id, (n) => {
+          setNcount((prev) => prev + 1)
+          const label = NOTIFY_TYPE[n?.type] || '알림'
+          const title = n?.title || label
+          toast(`${label}: ${title}`)
+        })
       }
     }
     refresh()

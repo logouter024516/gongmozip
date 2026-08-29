@@ -12,6 +12,7 @@ import Modal from './Modal'
 import { toast } from '../lib/toast'
 import ImageUpload from './ImageUpload'
 import { openThread } from '../lib/chat'
+import { findProfanity } from '../lib/profanity'
 
 const CATEGORIES = ['공구·도구', '가전·생활', '여행·캠핑', '기타']
 
@@ -175,6 +176,9 @@ export default function RentCard({ rent, onChanged }) {
       <div className="l-card-body">
         <h2 className="l-title">{rent.name}</h2>
         <p className="l-region"><MapPin size={13} strokeWidth={2} /> 이웃 공유 물품</p>
+        {rent.address && (
+          <p className="l-region l-region-sub"><MapPin size={13} strokeWidth={2} /> {rent.address}</p>
+        )}
         <Period startsOn={rent.starts_on} endsOn={rent.ends_on} />
 
         {(pricePerDay > 0 || deposit > 0) && (
@@ -230,12 +234,15 @@ function EditRentModal({ open, rent, onClose, onSaved }) {
   const [imageUrl, setImageUrl] = useState(rent.image_url ?? '')
   const [startsOn, setStartsOn] = useState(rent.starts_on ?? '')
   const [endsOn, setEndsOn] = useState(rent.ends_on ?? '')
+  const [address, setAddress] = useState(rent.address ?? '')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
   async function save(e) {
     e.preventDefault()
     if (!name.trim()) return
+    const bad = findProfanity(name) || findProfanity(desc) || findProfanity(address)
+    if (bad) { setError(`'${bad}'는 사용하기 어려운 표현이에요. 다른 문구로 바꿔주세요.`); return }
     if (startsOn && endsOn && new Date(endsOn) < new Date(startsOn)) {
       setError('종료일이 시작일보다 이전이에요.')
       return
@@ -253,6 +260,7 @@ function EditRentModal({ open, rent, onClose, onSaved }) {
         image_url: imageUrl.trim(),
         starts_on: startsOn || null,
         ends_on: endsOn || null,
+        address: address.trim(),
       })
       .eq('id', rent.id)
     setBusy(false)
@@ -301,6 +309,10 @@ function EditRentModal({ open, rent, onClose, onSaved }) {
         <div className="field">
           <label htmlFor={`rdesc-${rent.id}`}>설명(대여 조건 등)</label>
           <textarea id={`rdesc-${rent.id}`} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="예: 주말 대여 가능, 배터리 포함" />
+        </div>
+        <div className="field">
+          <label htmlFor={`raddr-${rent.id}`}>상세 위치(선택)</label>
+          <input id={`raddr-${rent.id}`} value={address} onChange={(e) => setAddress(e.target.value)} placeholder="예: 서울 마포구 성산동 / 아파트 동·호수" />
         </div>
         {error && <div className="alert alert-error" role="alert">{error}</div>}
         <button type="submit" className="btn btn-secondary btn-block" disabled={busy}>

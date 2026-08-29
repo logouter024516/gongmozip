@@ -13,6 +13,7 @@ import { useAuth } from '../context/AuthContext'
 import { toast } from '../lib/toast'
 import ImageUpload from '../components/ImageUpload'
 import { getBrowserPosition, regionCoords } from '../lib/location'
+import { findProfanity } from '../lib/profanity'
 
 const CATEGORIES = ['전체', '공구·도구', '가전·생활', '여행·캠핑', '기타']
 const FORM_CATEGORIES = CATEGORIES.filter((c) => c !== '전체')
@@ -26,6 +27,7 @@ function CreateRentForm({ user, profile, onCreated }) {
   const [deposit, setDeposit] = useState('')
   const [category, setCategory] = useState(FORM_CATEGORIES[0])
   const [imageUrl, setImageUrl] = useState('')
+  const [address, setAddress] = useState('')
   const [startsOn, setStartsOn] = useState('')
   const [endsOn, setEndsOn] = useState('')
   const [busy, setBusy] = useState(false)
@@ -41,13 +43,15 @@ function CreateRentForm({ user, profile, onCreated }) {
 
   function reset() {
     setName(''); setDesc(''); setPricePerDay(''); setDeposit('')
-    setCategory(FORM_CATEGORIES[0]); setImageUrl(''); setStartsOn(''); setEndsOn('')
+    setCategory(FORM_CATEGORIES[0]); setImageUrl(''); setStartsOn(''); setEndsOn(''); setAddress('')
     setError('')
   }
 
   async function handleSubmit(e) {
     e.preventDefault()
     if (!currentUser) { setError('로그인 정보를 확인할 수 없어요. 다시 로그인해주세요.'); return }
+    const bad = findProfanity(name) || findProfanity(desc) || findProfanity(address)
+    if (bad) { setError(`'${bad}'는 사용하기 어려운 표현이에요. 다른 문구로 바꿔주세요.`); return }
     if (startsOn && endsOn && new Date(endsOn) < new Date(startsOn)) {
       setError('종료일이 시작일보다 이전이에요.')
       return
@@ -70,6 +74,7 @@ function CreateRentForm({ user, profile, onCreated }) {
         deposit: Number(deposit) || 0,
         category: category || '기타',
         image_url: imageUrl.trim(),
+        address: address.trim(),
         lender_id: currentUser.id,
         status: 'available',
         latitude: lat,
@@ -129,6 +134,10 @@ function CreateRentForm({ user, profile, onCreated }) {
           <div className="field">
             <label>대표 이미지</label>
             <ImageUpload value={imageUrl} onChange={setImageUrl} hint="사진을 올리면 자동으로 표시돼요. 비우면 색상 카드가 나와요." />
+          </div>
+          <div className="field">
+            <label htmlFor="raddr">상세 위치(선택)</label>
+            <input id="raddr" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="예: 상암동 월드컵공원 정문 앞 / 아파트 동·호수" />
           </div>
           <div className="field">
             <label htmlFor="rdesc">설명(대여 조건 등)</label>

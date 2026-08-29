@@ -12,6 +12,7 @@ import Modal from './Modal'
 import { toast } from '../lib/toast'
 import ImageUpload from './ImageUpload'
 import { openThread } from '../lib/chat'
+import { findProfanity } from '../lib/profanity'
 
 // 카테고리 표시명
 const CAT = { '식품·신선': '식품·신선', '생활용품': '생활용품', '도서·산간': '도서·산간', '기타': '기타' }
@@ -164,6 +165,9 @@ export default function ItemCard({ item, onChanged }) {
           <MapPin size={13} strokeWidth={2} />
           {item.region || '지역 미지정'}
         </p>
+        {item.address && (
+          <p className="l-region l-region-sub"><MapPin size={13} strokeWidth={2} /> {item.address}</p>
+        )}
 
         {/* 집합 현황 진행바 */}
         <div className="l-progress">
@@ -295,12 +299,15 @@ function EditItemModal({ open, item, onClose, onSaved }) {
   const [imageUrl, setImageUrl] = useState(item.image_url ?? '')
   const [pickupSpot, setPickupSpot] = useState(item.pickup_spot ?? '')
   const [pickupAt, setPickupAt] = useState(toLocalInput(item.pickup_at))
+  const [address, setAddress] = useState(item.address ?? '')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
 
   async function save(e) {
     e.preventDefault()
     if (!name.trim()) return
+    const bad = findProfanity(name) || findProfanity(region) || findProfanity(address) || findProfanity(pickupSpot)
+    if (bad) { setError(`'${bad}'는 사용하기 어려운 표현이에요. 다른 문구로 바꿔주세요.`); return }
     setBusy(true)
     setError('')
     const { error: err } = await supabase
@@ -316,6 +323,7 @@ function EditItemModal({ open, item, onClose, onSaved }) {
         image_url: imageUrl.trim(),
         pickup_spot: pickupSpot.trim(),
         pickup_at: pickupAt ? new Date(pickupAt).toISOString() : null,
+        address: address.trim(),
       })
       .eq('id', item.id)
     setBusy(false)
@@ -364,6 +372,10 @@ function EditItemModal({ open, item, onClose, onSaved }) {
         <div className="field">
           <label htmlFor={`iregion-${item.id}`}>배송 지역(도서산간 함께배송)</label>
           <input id={`iregion-${item.id}`} value={region} onChange={(e) => setRegion(e.target.value)} placeholder="예: 제주 / 강원 산간" />
+        </div>
+        <div className="field">
+          <label htmlFor={`iaddr-${item.id}`}>상세 위치(선택)</label>
+          <input id={`iaddr-${item.id}`} value={address} onChange={(e) => setAddress(e.target.value)} placeholder="예: 제주시 연동 330 / 아파트 동·호수" />
         </div>
         <div className="field-grid">
           <div className="field">

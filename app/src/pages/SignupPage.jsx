@@ -6,6 +6,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { supabase, getAuthRedirectTo } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useEffect } from 'react'
+import { findProfanity } from '../lib/profanity'
 
 export default function SignupPage() {
   const { user } = useAuth()
@@ -45,6 +46,12 @@ export default function SignupPage() {
 
     if (!isValidEmailFormat(email)) {
       setError('올바른 이메일 형식이 아니에요. 예: you@example.com')
+      setBusy(false)
+      return
+    }
+    const bad = findProfanity(nickname)
+    if (bad) {
+      setError(`'${bad}'는 사용하기 어려운 표현이에요. 닉네임을 바꿔주세요.`)
       setBusy(false)
       return
     }
