@@ -10,6 +10,7 @@ import { Plus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { toast } from '../lib/toast'
+import ImageUpload from '../components/ImageUpload'
 
 const CATEGORIES = ['전체', '공구·도구', '가전·생활', '여행·캠핑', '기타']
 
@@ -80,8 +81,8 @@ function CreateRentForm({ user, onCreated }) {
             </div>
           </div>
           <div className="field">
-            <label htmlFor="rimg">대표 이미지 URL(선택)</label>
-            <input id="rimg" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://… (비우면 자동 색상 카드)" />
+            <label>대표 이미지</label>
+            <ImageUpload value={imageUrl} onChange={setImageUrl} hint="사진을 올리면 자동으로 표시돼요. 비우면 색상 카드가 나와요." />
           </div>
           <div className="field">
             <label htmlFor="rdesc">설명(가능한 대여 기간 등)</label>

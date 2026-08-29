@@ -9,6 +9,7 @@ import { MapPin, User as UserIcon, Pencil, Trash2 } from 'lucide-react'
 import CardImage from './CardImage'
 import Modal from './Modal'
 import { toast } from '../lib/toast'
+import ImageUpload from './ImageUpload'
 
 const CATEGORIES = ['공구·도구', '가전·생활', '여행·캠핑', '기타']
 
@@ -203,8 +204,8 @@ function EditRentModal({ open, rent, onClose, onSaved }) {
           </div>
         </div>
         <div className="field">
-          <label htmlFor={`rimg-${rent.id}`}>대표 이미지 URL(선택)</label>
-          <input id={`rimg-${rent.id}`} value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://… (비우면 자동 색상 카드)" />
+          <label>대표 이미지</label>
+          <ImageUpload value={imageUrl} onChange={setImageUrl} hint="사진을 올리거나 제거할 수 있어요." />
         </div>
         <div className="field">
           <label htmlFor={`rdesc-${rent.id}`}>설명(가능한 대여 기간 등)</label>

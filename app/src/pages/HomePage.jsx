@@ -10,15 +10,15 @@ import { Plus } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { toast } from '../lib/toast'
+import ImageUpload from '../components/ImageUpload'
 
 const CATEGORIES = ['전체', '식품·신선', '생활용품', '도서·산간', '기타']
 
-function CreateItemForm({ user, onCreated }) {
+function CreateItemForm({ user, profile, onCreated }) {
   const [show, setShow] = useState(false)
   const [name, setName] = useState('')
   const [price, setPrice] = useState('')
   const [shipping, setShipping] = useState('')
-  const [region, setRegion] = useState('')
   const [qty, setQty] = useState('1')
   const [target, setTarget] = useState('4')
   const [category, setCategory] = useState('식품·신선')
@@ -37,7 +37,7 @@ function CreateItemForm({ user, onCreated }) {
         name,
         price: Number(price) || 0,
         shipping_cost: Number(shipping) || 0,
-        region,
+        region: profile?.location || '',
         min_qty: Number(qty) || 1,
         target_count: Number(target) || 4,
         category,
@@ -47,7 +47,7 @@ function CreateItemForm({ user, onCreated }) {
       })
     setBusy(false)
     if (err) { setError(err.message); return }
-    setName(''); setPrice(''); setShipping(''); setRegion(''); setQty('1'); setTarget('4'); setCategory('식품·신선'); setImageUrl(''); setShow(false)
+    setName(''); setPrice(''); setShipping(''); setQty('1'); setTarget('4'); setCategory('식품·신선'); setImageUrl(''); setShow(false)
     toast('공동구매를 등록했어요!')
     if (onCreated) onCreated()
   }
@@ -90,12 +90,14 @@ function CreateItemForm({ user, onCreated }) {
             </div>
           </div>
           <div className="field">
-            <label htmlFor="iimg">대표 이미지 URL(선택)</label>
-            <input id="iimg" value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://… (비우면 자동 색상 카드)" />
+            <label>대표 이미지</label>
+            <ImageUpload value={imageUrl} onChange={setImageUrl} hint="사진을 올리면 자동으로 표시돼요. 비우면 색상 카드가 나와요." />
           </div>
           <div className="field">
-            <label htmlFor="iregion">배송 지역(도서산간 함께배송)</label>
-            <input id="iregion" value={region} onChange={(e) => setRegion(e.target.value)} placeholder="예: 제주 / 강원 산간" />
+            <label>배송 지역</label>
+            {profile?.location
+              ? <p className="field-hint"><strong>{profile.location}</strong> · 내 설정의 동네로 자동 등록돼요. <a href="/settings">변경</a></p>
+              : <p className="field-hint"><a href="/settings">내 동네(위치)를 설정</a>하면 배송 지역으로 자동 등록돼요.</p>}
           </div>
           {error && <div className="alert alert-error" role="alert">{error}</div>}
           <button type="submit" className="btn btn-block" disabled={busy}>
@@ -160,7 +162,7 @@ function HomeBody() {
       </div>
 
       <div className="action-row">
-        <CreateItemForm user={user} onCreated={load} />
+        <CreateItemForm user={user} profile={profile} onCreated={load} />
       </div>
 
       {loading ? (

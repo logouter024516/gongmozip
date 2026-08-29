@@ -10,6 +10,7 @@ import { MapPin, Users, Pencil, Trash2 } from 'lucide-react'
 import CardImage from './CardImage'
 import Modal from './Modal'
 import { toast } from '../lib/toast'
+import ImageUpload from './ImageUpload'
 
 // 카테고리 표시명
 const CAT = { '식품·신선': '식품·신선', '생활용품': '생활용품', '도서·산간': '도서·산간', '기타': '기타' }
@@ -226,8 +227,8 @@ function EditItemModal({ open, item, onClose, onSaved }) {
           </select>
         </div>
         <div className="field">
-          <label htmlFor={`iimg-${item.id}`}>대표 이미지 URL(선택)</label>
-          <input id={`iimg-${item.id}`} value={imageUrl} onChange={(e) => setImageUrl(e.target.value)} placeholder="https://… (비우면 자동 색상 카드)" />
+          <label>대표 이미지</label>
+          <ImageUpload value={imageUrl} onChange={setImageUrl} hint="사진을 올리거나 제거할 수 있어요." />
         </div>
         <div className="field">
           <label htmlFor={`iregion-${item.id}`}>배송 지역(도서산간 함께배송)</label>

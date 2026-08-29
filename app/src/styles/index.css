@@ -225,6 +225,59 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.55; }
   margin-top: var(--space-1);
 }
 
+/* 입력 보조 설명(힌트) */
+.field-hint {
+  font-size: var(--text-sm);
+  color: var(--color-fg-muted);
+  margin: var(--space-1) 0 0;
+  line-height: 1.5;
+}
+.field-hint a { color: var(--color-accent); font-weight: 600; }
+.field-hint strong { color: var(--color-fg); font-weight: 600; }
+
+/* 이미지 파일 업로드 필드 */
+.img-upload { margin-top: var(--space-1); }
+.img-upload-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  width: 100%;
+  min-height: 92px;
+  padding: var(--space-4);
+  border: 1.5px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background: var(--color-bg);
+  color: var(--color-fg-muted);
+  font-size: var(--text-sm);
+  font-weight: 600;
+  cursor: pointer;
+  transition: border-color var(--dur-fast) var(--ease-out), background var(--dur-fast) var(--ease-out);
+}
+.img-upload-trigger:hover {
+  border-color: var(--color-accent);
+  background: color-mix(in oklch, var(--color-accent) 5%, var(--color-bg));
+  color: var(--color-accent);
+}
+.img-upload-preview {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}
+.img-upload-preview img {
+  display: block;
+  width: 100%;
+  max-height: 220px;
+  object-fit: cover;
+  aspect-ratio: 16 / 9;
+}
+.img-upload-preview-actions {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3);
+}
+
 /* 모달/폼 안 줄 입력(가격·배송비·수량): 숫자 스피너 화살표 정리 */
 .field-grid input[type="number"] { -moz-appearance: textfield; appearance: textfield; }
 .field-grid input[type="number"]::-webkit-outer-spin-button,
