@@ -318,7 +318,9 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.55; }
 .badge-open { background: var(--color-accent); color: #fff; }
 .badge-closed { background: var(--color-border); color: var(--color-fg-muted); }
 .badge-available { background: var(--color-success); color: #fff; }
+.badge-reserved { background: #D08700; color: #fff; }
 .badge-onloan { background: var(--color-accent-secondary); color: #fff; }
+.badge-returned { background: var(--color-fg-muted); color: #fff; }
 
 /* ===== 6a) 카드 안 태그 칩 + 가격 강조(당근식) ===== */
 .tag-row {
@@ -961,6 +963,18 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.55; }
 }
 .l-lender svg { flex-shrink: 0; color: var(--color-accent-secondary); }
 .l-lender-mine { color: var(--color-accent); font-weight: 700; }
+.l-period { margin-top: 0; }
+
+/* 대여 상태별 안내/행동 */
+.l-status-note {
+  font-size: var(--text-sm);
+  color: var(--color-fg-muted);
+  margin: var(--space-2) 0 var(--space-3);
+  line-height: 1.5;
+}
+.l-status-note.l-mine { color: var(--color-accent); font-weight: 600; }
+.l-action-stack { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-3); }
+.l-action-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
 
 /* 이용내역 타임라인 */
 .rec-timeline { display: flex; flex-direction: column; gap: var(--space-3); }

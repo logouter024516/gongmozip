@@ -4,7 +4,7 @@
 import { Package } from 'lucide-react'
 
 const PALETTES = [
-  ['#060C7F', '#2A3BB8'],
+  ['#232ED1', '#6564DB'],
   ['#0FA958', '#0AF587'],
   ['#E0224F', '#FF8A9B'],
   ['#4F46E5', '#8B94FF'],
