@@ -5,23 +5,25 @@
     <title>공모집으로 이동 중</title>
     <script>
       // GitHub Pages SPA 폴백
-      // BrowserRouter 직접 URL(예: /records) 접근 시 index.html로 리디렉트해서
+      // BrowserRouter 직접 URL(예: /records, /auth/callback)은 페이지 파일이 없어
+      // 항상 404.html이 응답된다. 이 스크립트가 사이트 루트("/" = index.html)로 리다이렉트해서
       // React 라우터가 경로를 다시 처리하게 한다.
-      // 주의: location.hash(#access_token 등)는 반드시 그대로 보존해야 한다.
-      // 이메일 인증/OAuth 콜백으로 돌아온 토큰이 프래그먼트에 담겨 있기 때문.
+      // - query(?code=... PKCE 인증 코드)와 hash(#access_token 등)는 반드시 보존해야 한다.
+      //   이 값들이 없으면 이메일 인증/OAuth 로그인이 깨진다.
+      // - 같은 경로로 되돌리면(예: /auth/callback -> /auth/callback) 404가 무한 반복되므로
+      //   반드시 루트("/")로 보낸다.
       (function () {
         var l = window.location
         if (l.pathname === '/' || l.pathname === '') return
-        var target =
+        l.replace(
           l.protocol +
-          '//' +
-          (l.hostname || '') +
-          (l.port ? ':' + l.port : '') +
-          '/' +
-          l.pathname.split('/').slice(1).join('/') +
-          l.search +
-          l.hash
-        l.replace(target)
+            '//' +
+            (l.hostname || '') +
+            (l.port ? ':' + l.port : '') +
+            '/' +
+            l.search +
+            l.hash
+        )
       })()
     </script>
   </head>
