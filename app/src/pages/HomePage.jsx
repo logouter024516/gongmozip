@@ -11,7 +11,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { toast } from '../lib/toast'
 import ImageUpload from '../components/ImageUpload'
-import { userRegion } from '../lib/location'
+import { getBrowserPosition, regionCoords, userRegion } from '../lib/location'
 
 const CATEGORIES = ['전체', '식품·신선', '생활용품', '도서·산간', '기타']
 
@@ -26,19 +26,37 @@ function CreateItemForm({ user, profile, onCreated }) {
   const [imageUrl, setImageUrl] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [coords, setCoords] = useState(null)
+
+  // 등록 시점의 브라우저 위치 → 거리 정밀도 (실패 시 프로필/동네 좌표 폴백)
+  useEffect(() => {
+    let mounted = true
+    getBrowserPosition().then((p) => { if (mounted) setCoords(p) }).catch(() => {})
+    return () => { mounted = false }
+  }, [])
 
   async function handleSubmit(e) {
     e.preventDefault()
     if (!name.trim()) return
     setBusy(true)
     setError('')
+    const region = userRegion(profile)
+    let lat = profile?.latitude ?? null
+    let lng = profile?.longitude ?? null
+    if (coords) { lat = coords.lat; lng = coords.lng }
+    else if (lat == null || lng == null) {
+      const c = regionCoords(region)
+      if (c) { lat = c.lat; lng = c.lng }
+    }
     const { error: err } = await supabase
       .from('items')
       .insert({
         name,
         price: Number(price) || 0,
         shipping_cost: Number(shipping) || 0,
-        region: userRegion(profile) || '',
+        region: region || '',
+        latitude: lat,
+        longitude: lng,
         min_qty: Number(qty) || 1,
         target_count: Number(target) || 4,
         category,

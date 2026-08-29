@@ -12,11 +12,12 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { toast } from '../lib/toast'
 import ImageUpload from '../components/ImageUpload'
+import { getBrowserPosition, regionCoords } from '../lib/location'
 
 const CATEGORIES = ['전체', '공구·도구', '가전·생활', '여행·캠핑', '기타']
 const FORM_CATEGORIES = CATEGORIES.filter((c) => c !== '전체')
 
-function CreateRentForm({ user, onCreated }) {
+function CreateRentForm({ user, profile, onCreated }) {
   const currentUser = user
   const [show, setShow] = useState(false)
   const [name, setName] = useState('')
@@ -29,6 +30,14 @@ function CreateRentForm({ user, onCreated }) {
   const [endsOn, setEndsOn] = useState('')
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
+  const [coords, setCoords] = useState(null)
+
+  // 등록 시점의 브라우저 위치 → 거리 정밀도 (실패 시 프로필/동네 좌표 폴백)
+  useEffect(() => {
+    let mounted = true
+    getBrowserPosition().then((p) => { if (mounted) setCoords(p) }).catch(() => {})
+    return () => { mounted = false }
+  }, [])
 
   function reset() {
     setName(''); setDesc(''); setPricePerDay(''); setDeposit('')
@@ -45,6 +54,13 @@ function CreateRentForm({ user, onCreated }) {
     }
     setBusy(true)
     setError('')
+    let lat = profile?.latitude ?? null
+    let lng = profile?.longitude ?? null
+    if (coords) { lat = coords.lat; lng = coords.lng }
+    else if (lat == null || lng == null) {
+      const c = regionCoords(profile?.location)
+      if (c) { lat = c.lat; lng = c.lng }
+    }
     const { error: err } = await supabase
       .from('rentals')
       .insert({
@@ -56,6 +72,8 @@ function CreateRentForm({ user, onCreated }) {
         image_url: imageUrl.trim(),
         lender_id: currentUser.id,
         status: 'available',
+        latitude: lat,
+        longitude: lng,
         starts_on: startsOn || null,
         ends_on: endsOn || null,
       })
@@ -127,7 +145,7 @@ function CreateRentForm({ user, onCreated }) {
 }
 
 function RentBody() {
-  const { user } = useAuth()
+  const { user, profile } = useAuth()
   const [rentals, setRentals] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -176,7 +194,7 @@ function RentBody() {
       </div>
 
       <div className="action-row">
-        <CreateRentForm user={user} onCreated={load} />
+        <CreateRentForm user={user} profile={profile} onCreated={load} />
       </div>
 
       {loading ? (

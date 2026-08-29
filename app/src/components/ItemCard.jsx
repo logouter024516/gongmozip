@@ -6,11 +6,12 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useState } from 'react'
-import { MapPin, Users, Pencil, Trash2 } from 'lucide-react'
+import { MapPin, Users, Pencil, Trash2, MessageCircle } from 'lucide-react'
 import CardImage from './CardImage'
 import Modal from './Modal'
 import { toast } from '../lib/toast'
 import ImageUpload from './ImageUpload'
+import { openThread } from '../lib/chat'
 
 // 카테고리 표시명
 const CAT = { '식품·신선': '식품·신선', '생활용품': '생활용품', '도서·산간': '도서·산간', '기타': '기타' }
@@ -21,6 +22,7 @@ export default function ItemCard({ item, onChanged }) {
   const navigate = useNavigate()
   const [busy, setBusy] = useState(false)
   const [editing, setEditing] = useState(false)
+  const [chatting, setChatting] = useState(false)
 
   // 참여자 수 + 목표 인원(진행률 계산)
   const participantCount = item.participants?.length ?? 0
@@ -71,6 +73,19 @@ export default function ItemCard({ item, onChanged }) {
     if (err) { toast('삭제하지 못했어요', { type: 'error' }); return }
     toast('삭제했어요')
     if (onChanged) onChanged()
+  }
+
+  // 등록자와 쪽지 스레드 열기 (내 매칭/문의)
+  async function startChat() {
+    if (!user) { navigate('/login'); return }
+    setChatting(true)
+    try {
+      const thread = await openThread(item.created_by, { itemId: item.id })
+      navigate(`/chat/${thread.id}`)
+    } catch (e) {
+      toast('쪽지를 시작하지 못했어요', { type: 'error' })
+    }
+    setChatting(false)
   }
 
   const open = item.status === 'open'
@@ -135,6 +150,14 @@ export default function ItemCard({ item, onChanged }) {
         )}
         {!open && (
           <div className="l-closed-note">이번 모집은 마감됐어요</div>
+        )}
+
+        {/* 등록자에게 쪽지(문의) — 본인 제외 */}
+        {user && !isOwner && (
+          <button type="button" className="btn btn-outline btn-block chat-call-btn" onClick={startChat} disabled={chatting}>
+            <MessageCircle size={15} strokeWidth={2.2} />
+            {chatting ? '열기 중…' : '등록자에게 쪽지'}
+          </button>
         )}
 
         {/* 만든 이 전용: 수정/삭제 */}

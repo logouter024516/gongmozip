@@ -1,14 +1,31 @@
 // components/Layout.jsx — 앱의 공통 뼈대(위 내비게이션 + 아래 내용 + 상태바)
 // 로그인 후 보여지는 모든 화면이 이 레이아웃 안에 표시된다.
 
-import { NavLink, Link, useNavigate } from 'react-router-dom'
+import { NavLink, Link, useNavigate, useLocation } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { totalUnread, subscribeIncoming } from '../lib/chat'
 
 export default function Layout({ children }) {
   const { user, profile, signOut } = useAuth() // 로그인 정보와 로그아웃 함수
   const navigate = useNavigate()               // 로그아웃 후 화면 이동
+  const location = useLocation()
   const [theme, setTheme] = useState(() => document.documentElement.getAttribute('data-theme') || 'light')
+  const [unread, setUnread] = useState(0)
+
+  // 쪽지 안읽음 개수: 진입 시 + 실시간 수신 시 갱신
+  useEffect(() => {
+    let sub = null
+    async function refresh() {
+      if (!user) { setUnread(0); return }
+      setUnread(await totalUnread())
+      if (!sub) {
+        sub = subscribeIncoming(user.id, () => { totalUnread().then(setUnread) })
+      }
+    }
+    refresh()
+    return () => { if (sub) sub.unsubscribe() }
+  }, [user?.id, location.pathname])
 
   // 테마(라이트/다크) 전환: html 태그와 브라우저 저장소에 반영
   function toggleTheme() {
@@ -44,6 +61,14 @@ export default function Layout({ children }) {
                 <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
                 <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" strokeWidth="2" />
               </svg>
+            </NavLink>
+
+            {/* 쪽지(채팅) — 안읽음 배지 */}
+            <NavLink to="/chat" className="icon-btn" aria-label="쪽지" title="쪽지">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M21 15a2 2 0 0 1-2 2H8l-5 4V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
+              </svg>
+              {unread > 0 && <span className="nav-badge">{unread > 99 ? '99+' : unread}</span>}
             </NavLink>
 
             {/* 테마 토글 버튼 */}
@@ -107,6 +132,13 @@ export default function Layout({ children }) {
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M8 6h13M8 12h13M8 18h13" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/><path d="M3 6h.01M3 12h.01M3 18h.01" stroke="currentColor" strokeWidth="3" strokeLinecap="round"/></svg>
           </span>
           <span>이용내역</span>
+        </NavLink>
+        <NavLink to="/chat" className="bottom-tab">
+          <span className="bottom-tab-icon" aria-hidden="true">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M21 15a2 2 0 0 1-2 2H8l-5 4V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round"/></svg>
+            {unread > 0 && <span className="nav-badge nav-badge-tab">{unread > 99 ? '99+' : unread}</span>}
+          </span>
+          <span>쪽지</span>
         </NavLink>
         <NavLink to="/search" className="bottom-tab">
           <span className="bottom-tab-icon" aria-hidden="true">

@@ -79,7 +79,7 @@ function SettingsBody() {
   const email = user?.email ?? ''
 
   return (
-    <div className="container page" style={{ maxWidth: 640 }}>
+    <div className="container page settings-page" style={{ maxWidth: 640 }}>
       <div className="page-header">
         <h1>사용자 설정</h1>
         <p>내 정보와 앱 환경을 관리해요.</p>

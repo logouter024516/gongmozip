@@ -10,6 +10,8 @@ import RentPage from './pages/RentPage'
 import SearchPage from './pages/SearchPage'
 import SettingsPage from './pages/SettingsPage'
 import RecordsPage from './pages/RecordsPage'
+import ChatListPage from './pages/ChatListPage'
+import ChatThreadPage from './pages/ChatThreadPage'
 import ToastHost from './components/ToastHost'
 
 export default function App() {
@@ -21,6 +23,8 @@ export default function App() {
         <Route path="/rent" element={<RentPage />} />
         <Route path="/records" element={<RecordsPage />} />
         <Route path="/search" element={<SearchPage />} />
+        <Route path="/chat" element={<ChatListPage />} />
+        <Route path="/chat/:id" element={<ChatThreadPage />} />
         <Route path="/settings" element={<SettingsPage />} />
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />

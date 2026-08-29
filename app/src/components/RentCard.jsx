@@ -5,11 +5,13 @@
 import { useAuth } from '../context/AuthContext'
 import { supabase } from '../lib/supabase'
 import { useState } from 'react'
-import { MapPin, User as UserIcon, Pencil, Trash2, CalendarDays } from 'lucide-react'
+import { useNavigate } from 'react-router-dom'
+import { MapPin, User as UserIcon, Pencil, Trash2, CalendarDays, MessageCircle } from 'lucide-react'
 import CardImage from './CardImage'
 import Modal from './Modal'
 import { toast } from '../lib/toast'
 import ImageUpload from './ImageUpload'
+import { openThread } from '../lib/chat'
 
 const CATEGORIES = ['공구·도구', '가전·생활', '여행·캠핑', '기타']
 
@@ -44,8 +46,10 @@ function Period({ startsOn, endsOn }) {
 
 export default function RentCard({ rent, onChanged }) {
   const { user } = useAuth()
+  const navigate = useNavigate()
   const [busy, setBusy] = useState(false)
   const [editing, setEditing] = useState(false)
+  const [chatting, setChatting] = useState(false)
 
   const myId = user?.id
   const isLender = rent.lender_id === myId
@@ -92,6 +96,19 @@ export default function RentCard({ rent, onChanged }) {
     if (err) { toast(err.message || '삭제하지 못했어요', { type: 'error' }); return }
     toast('삭제했어요')
     if (onChanged) onChanged()
+  }
+
+  // 빌려주는 이웃과 쪽지 스레드 열기
+  async function startChat() {
+    if (!user) return
+    setChatting(true)
+    try {
+      const thread = await openThread(rent.lender_id, { rentalId: rent.id })
+      navigate(`/chat/${thread.id}`)
+    } catch (e) {
+      toast('쪽지를 시작하지 못했어요', { type: 'error' })
+    }
+    setChatting(false)
   }
 
   let action = null
@@ -178,6 +195,14 @@ export default function RentCard({ rent, onChanged }) {
         )}
 
         {action}
+
+        {/* 빌리는 이웃 쪽지 — 빌려주는 본인은 숨김 */}
+        {user && !isLender && (
+          <button type="button" className="btn btn-outline btn-block chat-call-btn" onClick={startChat} disabled={chatting}>
+            <MessageCircle size={15} strokeWidth={2.2} />
+            {chatting ? '열기 중…' : '빌려주는 이웃에게 쪽지'}
+          </button>
+        )}
 
         {isLender && (
           <div className="owner-actions">

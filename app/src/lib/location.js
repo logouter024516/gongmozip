@@ -89,11 +89,19 @@ export function fmtKm(km) {
 
 // 목록을 사용자 위치에서 가까운 순으로 정렬.
 // 각 항목에 region 문자열이 있어야 하며, 거리 계산 가능한 항목을 우선 정렬(좌표 없는 항목은 뒤로).
-// 반환: 같은 배열을 새로 만들어 정렬, 각 항목에 _distKm(거리km) / _regionCoord 부착.
+// 반환: 같은 배열을 새로 만들어 정렬, 각 항목에 _distKm(거리km) / _coord 부착.
+// 정밀 좌표(latitude/longitude)가 있으면 우선 사용한다 (거리 정밀도).
+export function rowCoord(row) {
+  if (row && row.latitude != null && row.longitude != null) {
+    return { lat: row.latitude, lng: row.longitude }
+  }
+  return regionCoords(row?.region)
+}
+
 export function sortByDistance(list, userPos) {
   if (!userPos || !Array.isArray(list)) return list
   const withKm = list.map((x) => {
-    const coord = regionCoords(x.region)
+    const coord = rowCoord(x)
     let km = null
     if (coord) {
       km = haversine(userPos, coord)
