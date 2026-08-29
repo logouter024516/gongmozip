@@ -20,10 +20,40 @@ export default function SignupPage() {
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
+  function isValidEmailFormat(v) {
+    return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)
+  }
+
+  async function hasMailDomain(email) {
+    const domain = email.split('@')[1] || ''
+    if (domain.includes('..') || /[^a-z0-9.\-]/i.test(domain) || !domain.includes('.')) return false
+    try {
+      const res = await fetch(`https://dns.google/resolve?name=${encodeURIComponent(domain)}&type=MX`)
+      if (!res.ok) return true
+      const json = await res.json()
+      if (json && (json.Answer || []).some((a) => a.type === 15)) return true
+      return !!json && (json.Answer || []).length > 0
+    } catch {
+      return true
+    }
+  }
+
   async function handleSubmit(e) {
     e.preventDefault()
     setBusy(true)
     setError('')
+
+    if (!isValidEmailFormat(email)) {
+      setError('올바른 이메일 형식이 아니에요. 예: you@example.com')
+      setBusy(false)
+      return
+    }
+    const domainOk = await hasMailDomain(email)
+    if (!domainOk) {
+      setError('이메일의 도메인이 존재하지 않거나 메일을 받을 수 없는 주소예요. 확인 후 다시 입력해주세요.')
+      setBusy(false)
+      return
+    }
 
     // 1) Supabase Auth에 사용자 생성 (이메일/비밀번호)
     const { data, error: authErr } = await supabase.auth.signUp({ email, password })

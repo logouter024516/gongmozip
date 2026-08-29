@@ -21,16 +21,16 @@
   --text-sm: 0.875rem;         /* 보조/메타 텍스트 */
   --text-xs: 0.75rem;          /* 라벨/캡션 */
 
-  /* ===== 간격(4pt 그리드) ===== */
-  --space-1: 0.25rem;
-  --space-2: 0.5rem;
-  --space-3: 0.75rem;
-  --space-4: 1rem;
-  --space-5: 1.25rem;
-  --space-6: 1.5rem;
-  --space-8: 2rem;
-  --space-12: 3rem;
-  --space-16: 4rem;
+  /* ===== 간격(여유로운 5pt 그리드) ===== */
+  --space-1: 0.3125rem;
+  --space-2: 0.625rem;
+  --space-3: 0.9375rem;
+  --space-4: 1.25rem;
+  --space-5: 1.5rem;
+  --space-6: 1.875rem;
+  --space-8: 2.5rem;
+  --space-12: 3.75rem;
+  --space-16: 5rem;
 
   /* ===== 모양(둥근 모서리) ===== */
   --radius-sm: 0.5rem;
