@@ -3,7 +3,7 @@
 
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { supabase, getAuthRedirectTo } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useEffect } from 'react'
 
@@ -56,26 +56,34 @@ export default function SignupPage() {
     }
 
     // 1) Supabase Auth에 사용자 생성 (이메일/비밀번호)
-    const { data, error: authErr } = await supabase.auth.signUp({ email, password })
+    // emailRedirectTo: 확인 메일의 링크를 클릭하면 이 주소로 돌아와 세션을 복원한다.
+    const { data, error: authErr } = await supabase.auth.signUp({
+      email,
+      password,
+      options: {
+        emailRedirectTo: getAuthRedirectTo(),
+        data: { nickname },
+      },
+    })
     if (authErr) {
       setError(authErr.message)
       setBusy(false)
       return
     }
 
-    // 2) profiles 테이블에 닉네임 기록 생성 (auth.users.id 와 연결)
-    if (data?.user) {
-      const { error: profileErr } = await supabase
-        .from('profiles')
-        .insert({ id: data.user.id, nickname })
-      if (profileErr) setError(`계정은 생성됐지만 닉네임 저장에 실패: ${profileErr.message}`)
+    // 2) profiles 테이블에 닉네임 기록(이미 있으면 유지)
+    if (data?.user && nickname) {
+      await supabase.from('profiles').upsert(
+        { id: data.user.id, nickname },
+        { onConflict: 'id' }
+      )
     }
 
     setBusy(false)
-    // 이메일 확인이 필요하면 안내, 아니면 자동으로 홈 이동
-    // (Supabase 설정이 이메일 확인 끔이면 session이 바로 생겨 홈으로 간다)
+    // 이메일 확인이 꺼져 있으면 세션이 바로 생겨 홈으로,
+    // 켜져 있으면 확인 메일을 보냈다고 안내한다.
     if (data?.session) navigate('/', { replace: true })
-    else setError('가입 완료! 이메일 인증 후 로그인해주세요.')
+    else setError('가입 확인 메일을 보냈어요. 메일함을 확인하고 링크를 눌러 인증을 완료해주세요.')
   }
 
   return (

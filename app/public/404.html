@@ -7,12 +7,21 @@
       // GitHub Pages SPA 폴백
       // BrowserRouter 직접 URL(예: /records) 접근 시 index.html로 리디렉트해서
       // React 라우터가 경로를 다시 처리하게 한다.
+      // 주의: location.hash(#access_token 등)는 반드시 그대로 보존해야 한다.
+      // 이메일 인증/OAuth 콜백으로 돌아온 토큰이 프래그먼트에 담겨 있기 때문.
       (function () {
         var l = window.location
-        l.replace(
-          l.protocol + '//' + (l.hostname || '') + (l.port ? ':' + l.port : '') + '/' +
-          l.pathname.split('/').slice(1).join('/') + l.search
-        )
+        if (l.pathname === '/' || l.pathname === '') return
+        var target =
+          l.protocol +
+          '//' +
+          (l.hostname || '') +
+          (l.port ? ':' + l.port : '') +
+          '/' +
+          l.pathname.split('/').slice(1).join('/') +
+          l.search +
+          l.hash
+        l.replace(target)
       })()
     </script>
   </head>
