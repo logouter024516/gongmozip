@@ -19,3 +19,16 @@ if (!supabaseUrl || !supabaseKey) {
 // Supabase 인스턴스 생성
 // publishable key(공개 키)는 브라우저에서 사용해도 안전하다
 export const supabase = createClient(supabaseUrl, supabaseKey)
+
+// OAuth 로그인 후 돌아올 사이트 주소(절대 URL, scheme 포함 필수).
+// 배포 시 VITE_SITE_URL(예: https://gongzip.developerlog.xyz)로 지정하고,
+// 없으면 현재 브라우저 주소(origin)를 사용한다.
+// -> scheme 없는 값이 들어가면 Supabase가 자기 도메인에 이어붙여 리다이렉트가 깨진다.
+export function getSiteUrl() {
+  const envUrl = import.meta.env.VITE_SITE_URL
+  if (envUrl && /^https?:\/\//.test(envUrl)) return envUrl
+  if (typeof window !== 'undefined' && window.location && window.location.origin) {
+    return window.location.origin
+  }
+  return envUrl || ''
+}

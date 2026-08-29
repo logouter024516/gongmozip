@@ -3,7 +3,7 @@
 
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { supabase } from '../lib/supabase'
+import { supabase, getSiteUrl } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useEffect } from 'react'
 
@@ -36,7 +36,7 @@ export default function LoginPage() {
     setError('')
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: getSiteUrl() },
     })
     setBusy(false)
     if (error) setError('Google 로그인 연결에 실패했습니다. 잠시 후 다시 시도하세요.')
@@ -49,7 +49,7 @@ export default function LoginPage() {
     setError('')
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'kakao',
-      options: { redirectTo: window.location.origin },
+      options: { redirectTo: getSiteUrl() },
     })
     setBusy(false)
     if (error) setError('카카오 로그인 연결에 실패했습니다. 잠시 후 다시 시도하세요.')
