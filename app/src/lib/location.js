@@ -107,3 +107,41 @@ export function sortByDistance(list, userPos) {
   })
   return withKm
 }
+
+// 좌표(lat/lng)에서 가장 가까운 지역 라벨 찾기 (브라우저 위치 → 동네 텍스트).
+// REGION_COORDS 목록을 haversine으로 비교해 최소 거리 키를 돌려준다. 없으면 null.
+export function nearestRegion(lat, lng) {
+  if (lat == null || lng == null) return null
+  let best = null
+  let bestKm = Infinity
+  for (const key of Object.keys(REGION_COORDS)) {
+    const km = haversine({ lat, lng }, REGION_COORDS[key])
+    if (km < bestKm) { bestKm = km; best = key }
+  }
+  return best
+}
+
+// 프로필에서 동네(지역) 라벨 파싱: 브라우저 좌표 우선 → 텍스트 폴백.
+// 가입/등록 시 "지정된 값이 아닌 브라우저 위치 기준"으로 쓰기 위한 헬퍼.
+export function userRegion(profile) {
+  if (!profile) return ''
+  const fromCoord = nearestRegion(profile.latitude, profile.longitude)
+  if (fromCoord) return fromCoord
+  return (profile.location || '').trim()
+}
+
+// 브라우저 위치정보(geolocation)를 Promise로 감싼 헬퍼.
+// 성공: { lat, lng } / 실패: Error(권한 거부·타임아웃 등).
+export function getBrowserPosition() {
+  return new Promise((resolve, reject) => {
+    if (!('geolocation' in navigator)) {
+      reject(new Error('이 브라우저는 위치정보를 지원하지 않아요.'))
+      return
+    }
+    navigator.geolocation.getCurrentPosition(
+      (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
+      (err) => reject(new Error(err && err.message ? err.message : '위치를 가져오지 못했어요. 잠시 후 다시 시도해주세요.')),
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 600000 }
+    )
+  })
+}

@@ -89,7 +89,15 @@ export function AuthProvider({ children }) {
     setProfile(null)
   }
 
-  const value = { user, profile, loading, signOut }
+  // 프로필을 다시 불러와 컨텍스트에 반영한다 (온보딩 완료 등).
+  async function refreshProfile() {
+    if (!user) return null
+    const p = await ensureProfile(user.id, user.email)
+    setProfile(p)
+    return p
+  }
+
+  const value = { user, profile, loading, signOut, refreshProfile }
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>
 }
 

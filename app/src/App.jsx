@@ -4,6 +4,7 @@ import { AuthProvider } from './context/AuthContext'
 import LoginPage from './pages/LoginPage'
 import SignupPage from './pages/SignupPage'
 import AuthCallback from './pages/AuthCallback'
+import OnboardingPage from './pages/OnboardingPage'
 import HomePage from './pages/HomePage'
 import RentPage from './pages/RentPage'
 import SearchPage from './pages/SearchPage'
@@ -24,6 +25,7 @@ export default function App() {
         <Route path="/login" element={<LoginPage />} />
         <Route path="/signup" element={<SignupPage />} />
         <Route path="/auth/callback" element={<AuthCallback />} />
+        <Route path="/onboarding" element={<OnboardingPage />} />
         {/* 그 외 경로는 홈으로 */}
         <Route path="*" element={<HomePage />} />
       </Routes>

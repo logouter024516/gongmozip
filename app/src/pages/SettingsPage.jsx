@@ -6,6 +6,7 @@ import ProtectedRoute from '../components/ProtectedRoute'
 import Layout from '../components/Layout'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
+import { getBrowserPosition, nearestRegion } from '../lib/location'
 
 function Avatar({ name }) {
   // 이름의 첫 글자를 브랜드 배경 원에 표시
@@ -19,20 +20,47 @@ function SettingsBody() {
   const { user, profile, signOut } = useAuth()
   const [nickname, setNickname] = useState(profile?.nickname ?? '')
   const [location, setLocation] = useState(profile?.location ?? '')
+  const [lat, setLat] = useState(profile?.latitude ?? null)
+  const [lng, setLng] = useState(profile?.longitude ?? null)
+  const [locBusy, setLocBusy] = useState(false)
   const [theme, setTheme] = useState(() => document.documentElement.getAttribute('data-theme') || 'light')
   const [saved, setSaved] = useState(false)
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
 
-  // 닉네임/동네 저장
+  // 브라우저 위치(geolocation)로 동네 자동 설정: 좌표 저장 + 인접 동네 라벨 표시
+  async function detectLocation() {
+    if (!('geolocation' in navigator)) {
+      setError('이 브라우저는 위치정보를 지원하지 않아요. 동네를 직접 입력해주세요.')
+      return
+    }
+    setLocBusy(true)
+    setError('')
+    try {
+      const pos = await getBrowserPosition()
+      setLat(pos.lat)
+      setLng(pos.lng)
+      const near = nearestRegion(pos.lat, pos.lng)
+      if (near) setLocation(near)
+      setSaved(true)
+      setTimeout(() => setSaved(false), 2000)
+    } catch (e) {
+      setError(e.message)
+    }
+    setLocBusy(false)
+  }
+
+  // 닉네임/동네 저장 (수동으로 동네를 고치면 좌표는 무효화)
   async function saveProfile(e) {
     e.preventDefault()
     if (!profile) return
     setBusy(true)
     setError('')
+    const patch = { nickname, location }
+    if (lat != null && lng != null) { patch.latitude = lat; patch.longitude = lng }
     const { error: err } = await supabase
       .from('profiles')
-      .update({ nickname, location })
+      .update(patch)
       .eq('id', user.id)
     setBusy(false)
     if (err) setError(err.message)
@@ -86,7 +114,27 @@ function SettingsBody() {
           <div className="settings-row row-form">
             <span className="settings-label">동네(위치)</span>
             <div className="nick-form">
-              <input value={location} onChange={(e) => setLocation(e.target.value)} aria-label="동네" className="nick-input" placeholder="예: 제주시" />
+              <input
+                value={location}
+                onChange={(e) => { setLocation(e.target.value); setLat(null); setLng(null) }}
+                aria-label="동네"
+                className="nick-input"
+                placeholder="예: 제주시"
+              />
+              <button
+                type="button"
+                className="btn btn-outline btn-sm"
+                onClick={detectLocation}
+                disabled={locBusy}
+                title="브라우저 위치로 동네 자동 설정"
+              >
+                {locBusy ? '확인 중…' : '내 위치로 자동 설정'}
+              </button>
+            </div>
+            <div className="settings-desc">
+              {lat != null && lng != null
+                ? '지금 계신 곳(브라우저 위치)의 좌표로 설정돼요. 직접 고치면 좌표는 해제돼요.'
+                : '버튼을 누르면 브라우저 위치(geolocation)로 가까운 동네를 자동 설정해요.'}
             </div>
           </div>
           <div className="settings-row">

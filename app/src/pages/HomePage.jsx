@@ -11,6 +11,7 @@ import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { toast } from '../lib/toast'
 import ImageUpload from '../components/ImageUpload'
+import { userRegion } from '../lib/location'
 
 const CATEGORIES = ['전체', '식품·신선', '생활용품', '도서·산간', '기타']
 
@@ -37,7 +38,7 @@ function CreateItemForm({ user, profile, onCreated }) {
         name,
         price: Number(price) || 0,
         shipping_cost: Number(shipping) || 0,
-        region: profile?.location || '',
+        region: userRegion(profile) || '',
         min_qty: Number(qty) || 1,
         target_count: Number(target) || 4,
         category,
@@ -95,9 +96,9 @@ function CreateItemForm({ user, profile, onCreated }) {
           </div>
           <div className="field">
             <label>배송 지역</label>
-            {profile?.location
-              ? <p className="field-hint"><strong>{profile.location}</strong> · 내 설정의 동네로 자동 등록돼요. <a href="/settings">변경</a></p>
-              : <p className="field-hint"><a href="/settings">내 동네(위치)를 설정</a>하면 배송 지역으로 자동 등록돼요.</p>}
+            {userRegion(profile)
+              ? <p className="field-hint"><strong>{userRegion(profile)}</strong> · 내 위치(설정) 기준으로 자동 등록돼요. <a href="/settings">변경</a></p>
+              : <p className="field-hint"><a href="/settings">설정에서 내 위치를 확정</a>하면 배송 지역으로 자동 등록돼요.</p>}
           </div>
           {error && <div className="alert alert-error" role="alert">{error}</div>}
           <button type="submit" className="btn btn-block" disabled={busy}>

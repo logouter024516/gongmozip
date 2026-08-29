@@ -623,6 +623,30 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.55; }
   margin-top: var(--space-6);
 }
 
+/* --- 온보딩(신규 가입 위치 설정) --- */
+.onb-loc-preview {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-5);
+  border-radius: var(--radius-md);
+  background: color-mix(in oklch, var(--color-success) 10%, var(--color-bg-elevated));
+  border: 1px solid color-mix(in oklch, var(--color-success) 30%, var(--color-border));
+  color: var(--color-fg);
+  font-weight: 600;
+  margin-bottom: var(--space-4);
+  text-align: center;
+}
+.onb-loc-preview::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: var(--radius-full);
+  background: var(--color-success);
+  flex-shrink: 0;
+}
+
 /* --- 홈/공동구매 헤더의 액션 줄 --- */
 .action-row {
   display: flex;
