@@ -75,7 +75,7 @@ function RecordsBody() {
           ))}
 
           {rents.map((r) => {
-            const isLender = r.lender_id === user.id
+            const isLender = r.lender_id === user?.id
             return (
               <div key={`r-${r.id}`} className="rec-item">
                 <div className={`rec-icon ${isLender ? 'rec-icon-rent-out' : 'rec-icon-rent'}`}>
