@@ -92,7 +92,7 @@ function SearchBody() {
     <div className="container page">
       <div className="page-header">
         <h1>검색</h1>
-        <p>자연어로 물어보세요. 예) "제주 감귤 공동구매", "살려는 전동 드릴"</p>
+        <p>자연어로 물어보세요. 예) "제주 감귤 공동구매", "빌리려는 전동 드릴"</p>
       </div>
 
       {/* 상단 검색창 */}

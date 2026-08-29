@@ -859,6 +859,21 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.55; }
 .l-ship { white-space: nowrap; }
 .l-ship-free { color: var(--color-success); font-weight: 600; }
 .l-cta { margin-top: 0; }
+
+/* 본인 등록물 수정/삭제 액션 */
+.owner-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
+}
+.owner-actions .btn { flex: 1; }
+.owner-actions .btn-danger {
+  color: var(--color-danger);
+  background: color-mix(in oklch, var(--color-danger) 8%, var(--color-bg-elevated));
+  border-color: color-mix(in oklch, var(--color-danger) 30%, transparent);
+}
+.owner-actions .btn-danger:hover { background: color-mix(in oklch, var(--color-danger) 16%, transparent); }
+
 .l-closed-note {
   text-align: center;
   padding: var(--space-3);

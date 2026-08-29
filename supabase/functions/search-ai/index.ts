@@ -94,7 +94,7 @@ const SCHEMA = {
 async function parseWithGemini(apiKey, model, query) {
   const prompt =
     '너는 한국 공동구매/물품대여 서비스의 검색 파서다. 아래 사용자 검색 문장을 JSON 스키마에 맞춰 구조화해라.\n' +
-    '평소 말투/은어도 이해해서 키워드로 바꾼다. 예: "살려는 전동드릴" → 공구·도구, "제주에서 감귤 같이 사려는" → category 식품·신선 + region 제주 + is_rental false.\n' +
+    '평소 말투/은어도 이해해서 키워드로 바꾼다. 예: "빌리려는 전동드릴" → 공구·도구, "제주에서 감귤 같이 사려는" → category 식품·신선 + region 제주 + is_rental false.\n' +
     '가격은 기재되면 price_max에 넣고 아니면 0. is_rental은 대여 요청이면 true, 공동구매면 false, 불분명하면 null.\n\n' +
     `검색 문장: "${query}"`
 
