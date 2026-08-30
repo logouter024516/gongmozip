@@ -15,8 +15,8 @@ import { useNavigate } from 'react-router-dom'
 import { MapPin, User as UserIcon, Pencil, Trash2, CalendarDays, MessageCircle, Send } from 'lucide-react'
 import CardImage from './CardImage'
 import Modal from './Modal'
+import RentFormModal from './RentFormModal'
 import { toast } from '../lib/toast'
-import ImageUpload from './ImageUpload'
 import { openThread } from '../lib/chat'
 import { findProfanity } from '../lib/profanity'
 
@@ -365,107 +365,14 @@ export default function RentCard({ rent, onChanged }) {
         )}
       </div>
 
-      <EditRentModal open={editing} rent={rent} onClose={() => setEditing(false)} onSaved={() => { setEditing(false); refresh() }} />
+      <RentFormModal
+        open={editing}
+        initial={rent}
+        user={user}
+        onClose={() => setEditing(false)}
+        onSaved={() => { setEditing(false); refresh() }}
+      />
       <OfferModal open={offerOpen} rent={rent} onClose={() => setOfferOpen(false)} onOffered={loadOffers} />
     </article>
-  )
-}
-
-function EditRentModal({ open, rent, onClose, onSaved }) {
-  const [name, setName] = useState(rent.name)
-  const [desc, setDesc] = useState(rent.description ?? '')
-  const [pricePerDay, setPricePerDay] = useState(String(rent.price_per_day ?? ''))
-  const [deposit, setDeposit] = useState(String(rent.deposit ?? ''))
-  const [category, setCategory] = useState(rent.category || '기타')
-  const [imageUrl, setImageUrl] = useState(rent.image_url ?? '')
-  const [startsOn, setStartsOn] = useState(rent.starts_on ?? '')
-  const [endsOn, setEndsOn] = useState(rent.ends_on ?? '')
-  const [address, setAddress] = useState(rent.address ?? '')
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState('')
-
-  async function save(e) {
-    e.preventDefault()
-    if (!name.trim()) return
-    const bad = findProfanity(name) || findProfanity(desc) || findProfanity(address)
-    if (bad) { setError(`'${bad}'는 사용하기 어려운 표현이에요. 다른 문구로 바꿔주세요.`); return }
-    if (startsOn && endsOn && new Date(endsOn) < new Date(startsOn)) {
-      setError('종료일이 시작일보다 이전이에요.')
-      return
-    }
-    setBusy(true)
-    setError('')
-    const { error: err } = await supabase
-      .from('rentals')
-      .update({
-        name: name.trim(),
-        description: desc.trim(),
-        price_per_day: Number(pricePerDay) || 0,
-        deposit: Number(deposit) || 0,
-        category: category || '기타',
-        image_url: imageUrl.trim(),
-        starts_on: startsOn || null,
-        ends_on: endsOn || null,
-        address: address.trim(),
-      })
-      .eq('id', rent.id)
-      .eq('requester_id', rent.requester_id)
-    setBusy(false)
-    if (err) { setError(err.message); return }
-    toast('수정했어요!')
-    onSaved()
-  }
-
-  return (
-    <Modal open={open} title="빌리고 싶어요 수정" onClose={onClose}>
-      <form onSubmit={save}>
-        <div className="field">
-          <label htmlFor={`rname-${rent.id}`}>필요한 물건 이름</label>
-          <input id={`rname-${rent.id}`} value={name} required onChange={(e) => setName(e.target.value)} placeholder="예: 전동 드릴" />
-        </div>
-        <div className="field-grid">
-          <div className="field">
-            <label htmlFor={`rprice-${rent.id}`}>하루 이용료(원)</label>
-            <input id={`rprice-${rent.id}`} type="number" min="0" value={pricePerDay} onChange={(e) => setPricePerDay(e.target.value)} />
-          </div>
-          <div className="field">
-            <label htmlFor={`rdep-${rent.id}`}>보증금(원)</label>
-            <input id={`rdep-${rent.id}`} type="number" min="0" value={deposit} onChange={(e) => setDeposit(e.target.value)} />
-          </div>
-          <div className="field">
-            <label htmlFor={`rcat-${rent.id}`}>카테고리</label>
-            <select id={`rcat-${rent.id}`} value={category} onChange={(e) => setCategory(e.target.value)}>
-              {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-            </select>
-          </div>
-        </div>
-        <div className="field-grid">
-          <div className="field">
-            <label htmlFor={`rstart-${rent.id}`}>필요한 시작일(선택)</label>
-            <input id={`rstart-${rent.id}`} type="date" value={startsOn} onChange={(e) => setStartsOn(e.target.value)} />
-          </div>
-          <div className="field">
-            <label htmlFor={`rend-${rent.id}`}>반납 예정일(선택)</label>
-            <input id={`rend-${rent.id}`} type="date" value={endsOn} onChange={(e) => setEndsOn(e.target.value)} />
-          </div>
-        </div>
-        <div className="field">
-          <label>대표 이미지</label>
-          <ImageUpload value={imageUrl} onChange={setImageUrl} hint="사진을 올리거나 제거할 수 있어요." />
-        </div>
-        <div className="field">
-          <label htmlFor={`rdesc-${rent.id}`}>설명(언제·얼마나 필요한지 등)</label>
-          <textarea id={`rdesc-${rent.id}`} value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="예: 주말 2일 사용 예정" />
-        </div>
-        <div className="field">
-          <label htmlFor={`raddr-${rent.id}`}>상세 위치(선택)</label>
-          <input id={`raddr-${rent.id}`} value={address} onChange={(e) => setAddress(e.target.value)} placeholder="예: 서울 마포구 성산동 / 아파트 동·호수" />
-        </div>
-        {error && <div className="alert alert-error" role="alert">{error}</div>}
-        <button type="submit" className="btn btn-secondary btn-block" disabled={busy}>
-          {busy ? '저장 중…' : '저장하기'}
-        </button>
-      </form>
-    </Modal>
   )
 }

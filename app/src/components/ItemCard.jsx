@@ -8,11 +8,9 @@ import { useAuth } from '../context/AuthContext'
 import { useState } from 'react'
 import { MapPin, Users, Pencil, Trash2, CheckCircle2, MapPinOff, Clock } from 'lucide-react'
 import CardImage from './CardImage'
-import Modal from './Modal'
+import ItemFormModal from './ItemFormModal'
 import { toast } from '../lib/toast'
-import ImageUpload from './ImageUpload'
 import { joinItemChat, leaveItemChat } from '../lib/chat'
-import { findProfanity } from '../lib/profanity'
 
 // 카테고리 표시명
 const CAT = { '식품·신선': '식품·신선', '생활용품': '생활용품', '도서·산간': '도서·산간', '기타': '기타' }
@@ -274,136 +272,14 @@ export default function ItemCard({ item, onChanged }) {
         )}
       </div>
 
-      {/* 수정 모달 */}
-      <EditItemModal open={editing} item={item} onClose={() => setEditing(false)} onSaved={() => { setEditing(false); if (onChanged) onChanged() }} />
+      {/* 수정 모달 — 등록과 동일한 마법사 UI */}
+      <ItemFormModal
+        open={editing}
+        initial={item}
+        user={user}
+        onClose={() => setEditing(false)}
+        onSaved={() => { setEditing(false); if (onChanged) onChanged() }}
+      />
     </article>
-  )
-}
-
-// 내 공동구매 수정 모달
-function toLocalInput(iso) {
-  if (!iso) return ''
-  const d = new Date(iso)
-  if (Number.isNaN(d.getTime())) return ''
-  const p = (n) => String(n).padStart(2, '0')
-  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())}T${p(d.getHours())}:${p(d.getMinutes())}`
-}
-
-function EditItemModal({ open, item, onClose, onSaved }) {
-  const [name, setName] = useState(item.name)
-  const [price, setPrice] = useState(String(item.price ?? ''))
-  const [shipping, setShipping] = useState(String(item.shipping_cost ?? ''))
-  const [minQty, setMinQty] = useState(String(item.min_qty ?? '1'))
-  const [target, setTarget] = useState(String(item.target_count ?? '4'))
-  const [deadline, setDeadline] = useState(toLocalInput(item.close_at))
-  const [region, setRegion] = useState(item.region ?? '')
-  const [category, setCategory] = useState(item.category || '기타')
-  const [imageUrl, setImageUrl] = useState(item.image_url ?? '')
-  const [pickupSpot, setPickupSpot] = useState(item.pickup_spot ?? '')
-  const [pickupAt, setPickupAt] = useState(toLocalInput(item.pickup_at))
-  const [address, setAddress] = useState(item.address ?? '')
-  const [busy, setBusy] = useState(false)
-  const [error, setError] = useState('')
-
-  async function save(e) {
-    e.preventDefault()
-    if (!name.trim()) return
-    const bad = findProfanity(name) || findProfanity(region) || findProfanity(address) || findProfanity(pickupSpot)
-    if (bad) { setError(`'${bad}'는 사용하기 어려운 표현이에요. 다른 문구로 바꿔주세요.`); return }
-    setBusy(true)
-    setError('')
-    const { error: err } = await supabase
-      .from('items')
-      .update({
-        name,
-        price: Number(price) || 0,
-        shipping_cost: Number(shipping) || 0,
-        region,
-        min_qty: Number(minQty) || 1,
-        target_count: Number(target) || 4,
-        close_at: deadline ? new Date(deadline).toISOString() : null,
-        category,
-        image_url: imageUrl.trim(),
-        pickup_spot: pickupSpot.trim(),
-        pickup_at: pickupAt ? new Date(pickupAt).toISOString() : null,
-        address: address.trim(),
-      })
-      .eq('id', item.id)
-    setBusy(false)
-    if (err) { setError(err.message); return }
-    toast('수정했어요!')
-    onSaved()
-  }
-
-  return (
-    <Modal open={open} title="공동구매 수정" onClose={onClose}>
-      <form onSubmit={save}>
-        <div className="field">
-          <label htmlFor={`iname-${item.id}`}>물품 이름</label>
-          <input id={`iname-${item.id}`} value={name} required onChange={(e) => setName(e.target.value)} placeholder="예: 제주 감귤 5kg" />
-        </div>
-        <div className="field-grid">
-          <div className="field">
-            <label htmlFor={`iprice-${item.id}`}>총 가격(원)</label>
-            <input id={`iprice-${item.id}`} type="number" min="0" value={price} onChange={(e) => setPrice(e.target.value)} />
-          </div>
-          <div className="field">
-            <label htmlFor={`iship-${item.id}`}>배송비(원)</label>
-            <input id={`iship-${item.id}`} type="number" min="0" value={shipping} onChange={(e) => setShipping(e.target.value)} />
-          </div>
-        </div>
-        <div className="field-grid">
-          <div className="field">
-            <label htmlFor={`imin-${item.id}`}>최소 구매 수량</label>
-            <input id={`imin-${item.id}`} type="number" min="1" value={minQty} onChange={(e) => setMinQty(e.target.value)} />
-          </div>
-          <div className="field">
-            <label htmlFor={`itarget-${item.id}`}>모집 인원(명)</label>
-            <input id={`itarget-${item.id}`} type="number" min="0" value={target} onChange={(e) => setTarget(e.target.value)} />
-            <span className="field-hint">0으로 두면 인원 제한 없는 모집이에요.</span>
-          </div>
-        </div>
-        <div className="field">
-          <label htmlFor={`ideadline-${item.id}`}>모집 마감 시각(선택)</label>
-          <input id={`ideadline-${item.id}`} type="datetime-local" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
-          <span className="field-hint">정하면 기간 기준 모집, 비워두면 인원 기준(목표 달성 시 자동 마감) 예요.</span>
-        </div>
-        <div className="field">
-          <label htmlFor={`icat-${item.id}`}>카테고리</label>
-          <select id={`icat-${item.id}`} value={category} onChange={(e) => setCategory(e.target.value)}>
-            {CATEGORIES.map((c) => <option key={c} value={c}>{c}</option>)}
-          </select>
-        </div>
-        <div className="field">
-          <label>대표 이미지</label>
-          <ImageUpload value={imageUrl} onChange={setImageUrl} hint="사진을 올리거나 제거할 수 있어요." />
-        </div>
-        <div className="field">
-          <label htmlFor={`iregion-${item.id}`}>배송 지역(도서산간 함께배송)</label>
-          <input id={`iregion-${item.id}`} value={region} onChange={(e) => setRegion(e.target.value)} placeholder="예: 제주 / 강원 산간" />
-        </div>
-        <div className="field">
-          <label htmlFor={`iaddr-${item.id}`}>상세 위치(선택)</label>
-          <input id={`iaddr-${item.id}`} value={address} onChange={(e) => setAddress(e.target.value)} placeholder="예: 제주시 연동 330 / 아파트 동·호수" />
-        </div>
-        <div className="field-grid">
-          <div className="field">
-            <label htmlFor={`ipickup-${item.id}`}>집결 장소(선택)</label>
-            <input id={`ipickup-${item.id}`} value={pickupSpot} onChange={(e) => setPickupSpot(e.target.value)} placeholder="예: 동네 마트 앞" />
-          </div>
-          <div className="field">
-            <label htmlFor={`ipickuptime-${item.id}`}>집결 시각(선택)</label>
-            <input id={`ipickuptime-${item.id}`} type="datetime-local" value={pickupAt} onChange={(e) => setPickupAt(e.target.value)} />
-          </div>
-        </div>
-        <div className="field well">
-          <span className="field-hint">모집이 마감되면 참여자에게 집결 안내 알림이 가요. 함께배송 수령을 위해 꼭 정해주세요.</span>
-        </div>
-        {error && <div className="alert alert-error" role="alert">{error}</div>}
-        <button type="submit" className="btn btn-block" disabled={busy}>
-          {busy ? '저장 중…' : '저장하기'}
-        </button>
-      </form>
-    </Modal>
   )
 }
