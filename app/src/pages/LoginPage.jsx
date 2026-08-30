@@ -53,7 +53,7 @@ export default function LoginPage() {
   return (
     <div className="auth-wrap">
       <div className="card auth-card">
-        <Link to="/" className="auth-back">← 공모집 소개</Link>
+        <Link to="/" className="auth-logo"><img src="/assets/logo.svg" alt="공모집" className="auth-logo-img" />공모집</Link>
         <h1>공모집 로그인</h1>
         <p className="auth-sub">소규모 가구의 똑똑한 공동구매 시작하기</p>
 
@@ -99,7 +99,7 @@ export default function LoginPage() {
         </form>
 
         <p className="auth-foot">
-          아직 계정이 없나요? <Link to="/signup">회원가입</Link>
+          공모집을 처음 이용하나요? <Link to="/signup">회원가입</Link>
         </p>
       </div>
     </div>

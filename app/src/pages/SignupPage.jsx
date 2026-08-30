@@ -93,14 +93,55 @@ export default function SignupPage() {
     else setError('가입 확인 메일을 보냈어요. 메일함을 확인하고 링크를 눌러 인증을 완료해주세요.')
   }
 
+  async function handleGoogle() {
+    setBusy(true)
+    setError('')
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo: getAuthRedirectTo() },
+    })
+    setBusy(false)
+    if (error) setError('Google 로그인 연결에 실패했습니다. 잠시 후 다시 시도하세요.')
+  }
+
+  async function handleKakao() {
+    setBusy(true)
+    setError('')
+    const { error } = await supabase.auth.signInWithOAuth({
+      provider: 'kakao',
+      options: { redirectTo: getAuthRedirectTo() },
+    })
+    setBusy(false)
+    if (error) setError('카카오 로그인 연결에 실패했습니다. 잠시 후 다시 시도하세요.')
+  }
+
   return (
     <div className="auth-wrap">
       <div className="card auth-card">
-        <Link to="/" className="auth-back">← 공모집 소개</Link>
+        <Link to="/" className="auth-logo"><img src="/assets/logo.svg" alt="공모집" className="auth-logo-img" />공모집</Link>
         <h1>회원가입</h1>
         <p className="auth-sub">공모집에서 함께 나누는 이웃이 되어보세요</p>
 
         {error && <div className="alert alert-error" role="alert">{error}</div>}
+
+        <button type="button" className="btn btn-outline btn-block" onClick={handleGoogle} disabled={busy}>
+          <svg className="g-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.27-4.74 3.27-8.1z"/>
+            <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+            <path fill="#FBBC05" d="M5.84 14.1c-.22-.66-.35-1.36-.35-2.1s.13-1.44.35-2.1V7.06H2.18A10.96 10.96 0 0 0 1 12c0 1.77.43 3.45 1.18 4.94l3.66-2.84z"/>
+            <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z"/>
+          </svg>
+          Google로 시작하기
+        </button>
+
+        <button type="button" className="btn btn-outline btn-block btn-kakao" onClick={handleKakao} disabled={busy}>
+          <svg className="g-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
+            <path fill="#381E1F" d="M12 3C6.48 3 2 6.58 2 11c0 2.52 1.42 4.75 3.64 6.2L5 20.6l2.9-1.57c.66.16 1.37.25 2.1.25 5.52 0 10-3.58 10-8S17.52 3 12 3z"/>
+          </svg>
+          카카오로 시작하기
+        </button>
+
+        <div className="auth-divider"><span>또는 이메일로 가입</span></div>
 
         <form onSubmit={handleSubmit}>
           <div className="field">

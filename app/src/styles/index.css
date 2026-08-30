@@ -627,6 +627,20 @@ html[data-theme="dark"] .brand-logo { filter: brightness(1.35) saturate(1.1); }
   margin-bottom: var(--space-4);
 }
 .auth-back:hover { text-decoration: none; color: var(--color-accent); }
+.auth-logo {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: var(--space-4);
+  font-weight: 700;
+  font-size: var(--text-xl);
+  color: var(--color-fg);
+  text-decoration: none;
+}
+.auth-logo-img { width: 30px; height: 30px; }
+html[data-theme="dark"] .auth-logo-img { filter: brightness(1.35) saturate(1.1); }
+.auth-logo:hover { text-decoration: none; }
 .auth-sub {
   text-align: center;
   color: var(--color-fg-muted);
