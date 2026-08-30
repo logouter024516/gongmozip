@@ -25,7 +25,13 @@ export default function LoginPage() {
     setError('')
     const { error: err } = await supabase.auth.signInWithPassword({ email, password })
     setBusy(false)
-    if (err) setError('로그인에 실패했습니다. 아이디와 비밀번호를 확인하세요.')
+    if (err) {
+      if (/not confirmed|확인/i.test(err.message)) {
+        setError('아직 이메일 인증이 완료되지 않았어요. 가입 시 받은 확인 메일의 링크를 눌러 인증을 완료해주세요. (확인 메일이 없으면 스팸함을 확인하세요.)')
+      } else {
+        setError('로그인에 실패했습니다. 아이디와 비밀번호를 확인하세요.')
+      }
+    }
   }
 
   async function handleGoogle() {

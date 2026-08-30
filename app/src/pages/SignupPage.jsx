@@ -20,6 +20,7 @@ export default function SignupPage() {
   const [nickname, setNickname] = useState('')
   const [error, setError] = useState('')
   const [busy, setBusy] = useState(false)
+  const [pendingEmail, setPendingEmail] = useState(null)
 
   function isValidEmailFormat(v) {
     return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(v)
@@ -73,7 +74,12 @@ export default function SignupPage() {
       },
     })
     if (authErr) {
-      setError(authErr.message)
+      // 이미 가입된 이메일은 로그인 안내로 친절하게 처리
+      if (/already registered|이미 등록|already exists/i.test(authErr.message)) {
+        setError('이미 가입한 이메일이에요. 로그인 페이지에서 로그인해주세요.')
+      } else {
+        setError(authErr.message)
+      }
       setBusy(false)
       return
     }
@@ -90,7 +96,32 @@ export default function SignupPage() {
     // 이메일 확인이 꺼져 있으면 세션이 바로 생겨 홈으로,
     // 켜져 있으면 확인 메일을 보냈다고 안내한다.
     if (data?.session) navigate('/', { replace: true })
-    else setError('가입 확인 메일을 보냈어요. 메일함을 확인하고 링크를 눌러 인증을 완료해주세요.')
+    else {
+      setPendingEmail(email)
+      setError('가입 확인 메일을 보냈어요. 메일함(스팸함 포함)을 확인하고 링크를 눌러 인증을 완료해주세요. 메일이 안 오면 아래 버튼으로 다시 보내드려요.')
+    }
+  }
+
+  async function resendEmail() {
+    if (!pendingEmail) return
+    setBusy(true)
+    setError('')
+    const { error } = await supabase.auth.resend({
+      type: 'signup',
+      email: pendingEmail,
+      options: { emailRedirectTo: getAuthRedirectTo() },
+    })
+    setBusy(false)
+    if (error) {
+      if (/already confirmed|이미 인증/i.test(error.message)) {
+        setError('이미 인증된 이메일이에요. 로그인 페이지에서 바로 로그인해주세요.')
+        setPendingEmail(null)
+      } else {
+        setError(`다시 보내는데 실패했어요. 잠시 후 시도해주세요. (${error.message})`)
+      }
+    } else {
+      setError('확인 메일을 다시 보냈어요. 스팸함도 확인해주세요.')
+    }
   }
 
   async function handleGoogle() {
@@ -123,6 +154,15 @@ export default function SignupPage() {
         <p className="auth-sub">공모집에서 함께 나누는 이웃이 되어보세요</p>
 
         {error && <div className="alert alert-error" role="alert">{error}</div>}
+
+        {pendingEmail && (
+          <div className="auth-resend">
+            <button type="button" className="btn btn-outline btn-block" onClick={resendEmail} disabled={busy}>
+              {busy ? '보내는 중…' : '확인 메일 다시 보내기'}
+            </button>
+            <p className="auth-sub">인증 후 자동으로 홈으로 이동해요. 안 오면 스팸/프로모션 폴더를 확인해주세요.</p>
+          </div>
+        )}
 
         <button type="button" className="btn btn-outline btn-block" onClick={handleGoogle} disabled={busy}>
           <svg className="g-icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
