@@ -22,7 +22,7 @@ export default function LandingPage() {
     <div className="landing">
       <header className="land-header">
         <div className="container land-header-in">
-          <Link to="/" className="land-logo"><img src="/assets/logo.svg" alt="" className="land-logo-img" aria-hidden="true" />공모집</Link>
+          <Link to="/" className="land-logo"><img src="/logo.svg" alt="" className="land-logo-img" aria-hidden="true" />공모집</Link>
           <nav className="land-nav">
             <Link to="/login" className="btn btn-outline btn-sm">로그인</Link>
             <Link to="/signup" className="btn btn-sm">시작하기</Link>
@@ -114,7 +114,7 @@ export default function LandingPage() {
 
       <footer className="land-footer">
         <div className="container land-footer-in">
-          <span className="land-logo"><img src="/assets/logo.svg" alt="" className="land-logo-img" aria-hidden="true" />공모집</span>
+          <span className="land-logo"><img src="/logo.svg" alt="" className="land-logo-img" aria-hidden="true" />공모집</span>
           <span className="land-footer-note">소규모 가구를 위한 동네 나눔</span>
           <span className="land-footer-copy">© 2026 공모집</span>
         </div>

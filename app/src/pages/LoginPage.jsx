@@ -53,7 +53,7 @@ export default function LoginPage() {
   return (
     <div className="auth-wrap">
       <div className="card auth-card">
-        <Link to="/" className="auth-logo"><img src="/assets/logo.svg" alt="공모집" className="auth-logo-img" />공모집</Link>
+        <Link to="/" className="auth-logo"><img src="/logo.svg" alt="공모집" className="auth-logo-img" />공모집</Link>
         <h1>공모집 로그인</h1>
         <p className="auth-sub">소규모 가구의 똑똑한 공동구매 시작하기</p>
 
