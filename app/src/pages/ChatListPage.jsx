@@ -27,18 +27,20 @@ function ChatListBody() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
 
-  async function load() {
-    setLoading(true)
+  async function load(silent = false) {
+    if (!silent) setLoading(true)
     const { data, error: err } = await fetchThreads()
-    if (err) { setError('쪽지를 불러오지 못했어요.'); setLoading(false); return }
+    if (err) { if (!silent) setError('쪽지를 불러오지 못했어요.'); setLoading(false); return }
     setThreads(data ?? [])
     setLoading(false)
   }
 
   useEffect(() => {
     load()
-    const sub = subscribeIncoming(user?.id, () => { load() })
-    return () => { sub.unsubscribe() }
+    const sub = subscribeIncoming(user?.id, () => { load(true) })
+    // 실시간 구독이 불안정한 네트워크 백업 폴링
+    const poll = setInterval(() => { if (document.visibilityState === 'visible') load(true) }, 7000)
+    return () => { sub.unsubscribe(); clearInterval(poll) }
   }, [user?.id])
 
   return (

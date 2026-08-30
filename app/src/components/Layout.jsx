@@ -28,7 +28,9 @@ export default function Layout({ children }) {
       }
     }
     refresh()
-    return () => { if (sub) sub.unsubscribe() }
+    // 실시간 구독이 불안정한 네트워크 백업 폴링
+    const poll = setInterval(() => { if (document.visibilityState === 'visible') totalUnread().then(setUnread) }, 15000)
+    return () => { if (sub) sub.unsubscribe(); clearInterval(poll) }
   }, [user?.id, location.pathname])
 
   // 알림 안읽음 개수: 진입 시 + 실시간 도착 시 갱신
@@ -48,7 +50,9 @@ export default function Layout({ children }) {
       }
     }
     refresh()
-    return () => { if (sub) sub.unsubscribe() }
+    // 실시간 구독이 불안정한 네트워크 백업 폴링
+    const poll = setInterval(() => { if (document.visibilityState === 'visible') unreadNotifications().then(setNcount) }, 20000)
+    return () => { if (sub) sub.unsubscribe(); clearInterval(poll) }
   }, [user?.id, location.pathname])
 
   return (

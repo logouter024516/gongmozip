@@ -60,8 +60,13 @@ function ThreadBody() {
       .select('id, body, sender_id, created_at')
       .eq('thread_id', id)
       .order('created_at', { ascending: true })
-    if (!error) setMessages(data ?? [])
-    setLoading(false)
+    if (error) return
+    setMessages((prev) => {
+      // 새 메시지가 도착하면 읽음 처리하고, 실시간 수신과 병합(중복 방지)한다.
+      if (data.length > prev.length) markThreadRead(id, myId)
+      if (data.length === prev.length && prev.every((m, i) => m.id === data[i]?.id)) return prev
+      return data ?? []
+    })
   }
 
   useEffect(() => {
@@ -76,7 +81,10 @@ function ThreadBody() {
       markThreadRead(id, myId)
     })
 
-    return () => { sub.unsubscribe() }
+    // 실시간 구독이 불안정한 네트워크에서도 최신 메시지를 보장하는 백업 폴링
+    const poll = setInterval(() => { loadMessages() }, 6000)
+
+    return () => { sub.unsubscribe(); clearInterval(poll) }
   }, [id, myId])
 
   // 새 메시지가 오면 맨 아래로 스크롤

@@ -2,7 +2,7 @@
 // 장기 보유가 필요 없는 물건을 이웃끼리 단기 대여하는 시스템.
 // 등록 → 대여 신청(reserved) → 승인(on_loan) → 반납 확인(returned) → 재등록 흐름.
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef, useState } from 'react'
 import ProtectedRoute from '../components/ProtectedRoute'
 import Layout from '../components/Layout'
 import RentCard from '../components/RentCard'
@@ -14,6 +14,7 @@ import { toast } from '../lib/toast'
 import ImageUpload from '../components/ImageUpload'
 import { getBrowserPosition, regionCoords } from '../lib/location'
 import { findProfanity } from '../lib/profanity'
+import { reverseGeocode } from '../lib/geocode'
 
 const CATEGORIES = ['전체', '공구·도구', '가전·생활', '여행·캠핑', '기타']
 const FORM_CATEGORIES = CATEGORIES.filter((c) => c !== '전체')
@@ -35,15 +36,20 @@ function CreateRentForm({ user, profile, onCreated }) {
   const [coords, setCoords] = useState(null)
 
   // 등록 시점의 브라우저 위치 → 거리 정밀도 (실패 시 프로필/동네 좌표 폴백)
+  const addressRef = useRef('')
   useEffect(() => {
     let mounted = true
-    getBrowserPosition().then((p) => { if (mounted) setCoords(p) }).catch(() => {})
+    getBrowserPosition().then((p) => {
+      if (!mounted) return
+      setCoords(p)
+      reverseGeocode(p.lat, p.lng).then((addr) => { if (mounted && addr && !addressRef.current) setAddress(addr) })
+    }).catch(() => {})
     return () => { mounted = false }
   }, [])
 
   function reset() {
     setName(''); setDesc(''); setPricePerDay(''); setDeposit('')
-    setCategory(FORM_CATEGORIES[0]); setImageUrl(''); setStartsOn(''); setEndsOn(''); setAddress('')
+    setCategory(FORM_CATEGORIES[0]); setImageUrl(''); setStartsOn(''); setEndsOn(''); setAddress(''); addressRef.current = ''
     setError('')
   }
 
@@ -137,7 +143,13 @@ function CreateRentForm({ user, profile, onCreated }) {
           </div>
           <div className="field">
             <label htmlFor="raddr">상세 위치(선택)</label>
-            <input id="raddr" value={address} onChange={(e) => setAddress(e.target.value)} placeholder="예: 상암동 월드컵공원 정문 앞 / 아파트 동·호수" />
+            <input
+              id="raddr"
+              value={address}
+              onChange={(e) => { setAddress(e.target.value); addressRef.current = e.target.value }}
+              placeholder="예: 상암동 월드컵공원 정문 앞 / 아파트 동·호수"
+            />
+            <span className="field-hint">내 위치(브라우저 설정) 기준 주소가 자동으로 채워져요. 동·호수 등은 직접 보완하세요.</span>
           </div>
           <div className="field">
             <label htmlFor="rdesc">설명(대여 조건 등)</label>
