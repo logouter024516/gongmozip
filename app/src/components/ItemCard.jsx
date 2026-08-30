@@ -6,7 +6,7 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useState } from 'react'
-import { MapPin, Users, Pencil, Trash2, CheckCircle2, MapPinOff } from 'lucide-react'
+import { MapPin, Users, Pencil, Trash2, CheckCircle2, MapPinOff, Clock } from 'lucide-react'
 import CardImage from './CardImage'
 import Modal from './Modal'
 import { toast } from '../lib/toast'
@@ -24,6 +24,14 @@ function fmtPickup(value, spot) {
   const d = new Date(value)
   const date = `${d.getMonth() + 1}.${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
   return spot ? `${date} · ${spot}` : `${date}에 집결`
+}
+
+// 모집 마감 시각 표시 (기간 기준/영구)
+function fmtDeadline(iso) {
+  if (!iso) return ''
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return ''
+  return `${d.getMonth() + 1}.${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
 }
 
 export default function ItemCard({ item, onChanged }) {
@@ -138,7 +146,7 @@ export default function ItemCard({ item, onChanged }) {
     if (onChanged) onChanged()
   }
 
-  const open = item.status === 'open'
+  const open = item.status === 'open' && !(item.close_at && new Date(item.close_at) <= Date.now())
   const closed = !open
   const myParticipant = item.participants?.find?.((p) => p.user_id === user?.id)
   const arrivedCount = (item.participants ?? []).filter((p) => p.arrived_at).length
@@ -191,6 +199,11 @@ export default function ItemCard({ item, onChanged }) {
             </div>
           </div>
         </div>
+
+        {/* 모집 기한 (기간 기준) */}
+        {open && item.close_at && (
+          <span className="l-deadline"><Clock size={12} strokeWidth={2.2} /> {fmtDeadline(item.close_at)}까지 모집</span>
+        )}
 
         {/* 참여 버튼 */}
         {open && (
@@ -282,6 +295,7 @@ function EditItemModal({ open, item, onClose, onSaved }) {
   const [shipping, setShipping] = useState(String(item.shipping_cost ?? ''))
   const [minQty, setMinQty] = useState(String(item.min_qty ?? '1'))
   const [target, setTarget] = useState(String(item.target_count ?? '4'))
+  const [deadline, setDeadline] = useState(toLocalInput(item.close_at))
   const [region, setRegion] = useState(item.region ?? '')
   const [category, setCategory] = useState(item.category || '기타')
   const [imageUrl, setImageUrl] = useState(item.image_url ?? '')
@@ -307,6 +321,7 @@ function EditItemModal({ open, item, onClose, onSaved }) {
         region,
         min_qty: Number(minQty) || 1,
         target_count: Number(target) || 4,
+        close_at: deadline ? new Date(deadline).toISOString() : null,
         category,
         image_url: imageUrl.trim(),
         pickup_spot: pickupSpot.trim(),
@@ -344,8 +359,13 @@ function EditItemModal({ open, item, onClose, onSaved }) {
           </div>
           <div className="field">
             <label htmlFor={`itarget-${item.id}`}>모집 인원(명)</label>
-            <input id={`itarget-${item.id}`} type="number" min="1" value={target} onChange={(e) => setTarget(e.target.value)} />
+            <input id={`itarget-${item.id}`} type="number" min="0" value={target} onChange={(e) => setTarget(e.target.value)} />
           </div>
+        </div>
+        <div className="field">
+          <label htmlFor={`ideadline-${item.id}`}>모집 마감 시각(선택)</label>
+          <input id={`ideadline-${item.id}`} type="datetime-local" value={deadline} onChange={(e) => setDeadline(e.target.value)} />
+          <span className="field-hint">정하면 기간 기준 모집, 비워두면 인원 기준(목표 달성 시 자동 마감) 예요.</span>
         </div>
         <div className="field">
           <label htmlFor={`icat-${item.id}`}>카테고리</label>

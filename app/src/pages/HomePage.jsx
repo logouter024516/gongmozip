@@ -7,7 +7,7 @@ import ProtectedRoute from '../components/ProtectedRoute'
 import Layout from '../components/Layout'
 import ItemCard from '../components/ItemCard'
 import Modal from '../components/Modal'
-import { Plus, ChevronLeft, Apple, Package, BookOpen, Shapes, Wallet, Split, Clock, Minus, MapPin, Pencil, Locate } from 'lucide-react'
+import { Plus, ChevronLeft, Apple, Package, BookOpen, Shapes, Wallet, Split, Clock, Minus, MapPin, Pencil, Locate, Users, CalendarDays, Infinity } from 'lucide-react'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { toast } from '../lib/toast'
@@ -18,12 +18,20 @@ import { reverseGeocode } from '../lib/geocode'
 
 const CATEGORIES = ['식품·신선', '생활용품', '도서·산간', '기타']
 
+// 'YYYY-MM-DDTHH:mm' (datetime-local) → 표시 문자열
+function fmtDeadline(value) {
+  if (!value) return ''
+  const d = new Date(value)
+  if (Number.isNaN(d.getTime())) return ''
+  return `${d.getMonth() + 1}.${d.getDate()} ${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`
+}
+
 // 마법사 단계 제목
 const WIZ_STEPS = [
   '어떤 물건을 살까요?',
   '물건 이름과 사진',
   '가격을 어떻게 정할까요?',
-  '몇 명이 모이면 시작할까요?',
+  '모집을 언제까지 할까요?',
   '모이는 위치',
   '마지막 확인',
 ]
@@ -49,6 +57,9 @@ function CreateItemForm({ user, profile, onCreated }) {
   const [shipPerHead, setShipPerHead] = useState('')
   const [qty, setQty] = useState(1)
   const [target, setTarget] = useState(4)
+  const [closeMode, setCloseMode] = useState('head')
+  const [closeAt, setCloseAt] = useState('')
+  const [permanent, setPermanent] = useState(false)
   const [address, setAddress] = useState('')
   const [manualAddr, setManualAddr] = useState(false)
   const [locating, setLocating] = useState(false)
@@ -101,6 +112,9 @@ function CreateItemForm({ user, profile, onCreated }) {
     setShipPerHead('')
     setQty(1)
     setTarget(4)
+    setCloseMode('head')
+    setCloseAt('')
+    setPermanent(false)
     setAddress('')
     addressRef.current = ''
     setManualAddr(false)
@@ -154,7 +168,8 @@ function CreateItemForm({ user, profile, onCreated }) {
         latitude: lat,
         longitude: lng,
         min_qty: calcs.minQty,
-        target_count: Number(target) || 4,
+        target_count: closeMode === 'head' ? (Number(target) || 4) : 0,
+        close_at: closeMode === 'deadline' && !permanent && closeAt ? new Date(closeAt).toISOString() : null,
         category: category || '기타',
         image_url: imageUrl.trim(),
         address: address.trim(),
@@ -171,6 +186,9 @@ function CreateItemForm({ user, profile, onCreated }) {
 
   const priceLabel = calcs.price > 0 ? `${calcs.price.toLocaleString()}원` : '나중에 정해요'
   const shipLabel = priceMode === 'later' ? '나중에 정해요' : calcs.shippingCost > 0 ? `${calcs.shippingCost.toLocaleString()}원` : '없음'
+  const closeLabel = closeMode === 'deadline'
+    ? (permanent || !closeAt ? '영구(무기한)' : `모집 ${fmtDeadline(closeAt)}까지`)
+    : `인원 ${target}명`
 
   return (
     <>
@@ -287,13 +305,58 @@ function CreateItemForm({ user, profile, onCreated }) {
 
           {step === 3 && (
             <>
-              <div className="stepper stepper-lg">
-                <button type="button" onClick={() => setTarget((t) => Math.max(2, t - 1))} aria-label="인원 줄이기"><Minus size={20} strokeWidth={2.4} /></button>
-                <b className="stepper-num">{target}명</b>
-                <button type="button" onClick={() => setTarget((t) => Math.min(99, t + 1))} aria-label="인원 늘리기"><Plus size={20} strokeWidth={2.4} /></button>
+              <div className="step-tiles">
+                <button type="button" className={`step-tile${closeMode === 'head' ? ' sel' : ''}`} onClick={() => setCloseMode('head')}>
+                  <Users size={20} strokeWidth={1.8} />
+                  <strong>인원이 차면</strong>
+                  <span>원하는 인원이 모이면 바로 시작해요</span>
+                </button>
+                <button type="button" className={`step-tile${closeMode === 'deadline' ? ' sel' : ''}`} onClick={() => setCloseMode('deadline')}>
+                  <CalendarDays size={20} strokeWidth={1.8} />
+                  <strong>기간까지</strong>
+                  <span>정한 시각까지 모집해요 (영구도 가능)</span>
+                </button>
               </div>
-              <p className="field-hint wiz-center-hint">이만큼 모이면 함께배송을 시작해요.</p>
-              <button type="button" className="btn btn-block" onClick={() => setStep(4)}>
+
+              {closeMode === 'head' && (
+                <div className="wiz-panel">
+                  <div className="stepper stepper-lg">
+                    <button type="button" onClick={() => setTarget((t) => Math.max(2, t - 1))} aria-label="인원 줄이기"><Minus size={20} strokeWidth={2.4} /></button>
+                    <b className="stepper-num">{target}명</b>
+                    <button type="button" onClick={() => setTarget((t) => Math.min(99, t + 1))} aria-label="인원 늘리기"><Plus size={20} strokeWidth={2.4} /></button>
+                  </div>
+                  <p className="field-hint wiz-center-hint">이만큼 모이면 함께배송을 시작해요. 목표를 바꾸려면 뒤로 가세요.</p>
+                </div>
+              )}
+
+              {closeMode === 'deadline' && (
+                <div className="wiz-panel">
+                  {permanent ? (
+                    <div className="l-addr-card">
+                      <p className="l-addr-main"><Infinity size={15} strokeWidth={2} /> 영구(무기한) 모집</p>
+                      <p className="field-hint">마감 시각 없이 계속 모집하고, 원할 때 직접 마감해요.</p>
+                    </div>
+                  ) : (
+                    <div className="field">
+                      <label htmlFor="iclose">모집 마감 시각</label>
+                      <input id="iclose" type="datetime-local" value={closeAt} onChange={(e) => setCloseAt(e.target.value)} />
+                      <p className="field-hint">이 시각이 지나면 자동으로 모집이 마감돼요.</p>
+                    </div>
+                  )}
+                  <div className="wiz-inline-actions">
+                    <button type="button" className="btn btn-outline btn-sm" onClick={() => setPermanent(!permanent)}>
+                      {permanent ? '마감 시각으로 정하기' : '영구(무기한) 모집하기'}
+                    </button>
+                  </div>
+                </div>
+              )}
+
+              <button
+                type="button"
+                className="btn btn-block"
+                onClick={() => setStep(4)}
+                disabled={closeMode === 'deadline' && !permanent && !closeAt}
+              >
                 다음
               </button>
             </>
@@ -342,7 +405,7 @@ function CreateItemForm({ user, profile, onCreated }) {
                 <div className="summary-row"><span>물건</span><strong>{name}</strong></div>
                 <div className="summary-row"><span>금액</span><strong>{priceLabel}</strong></div>
                 <div className="summary-row"><span>배송비</span><strong>{shipLabel}</strong></div>
-                <div className="summary-row"><span>인원</span><strong>{target}명</strong></div>
+                <div className="summary-row"><span>모집</span><strong>{closeLabel}</strong></div>
                 <div className="summary-row"><span>위치</span><strong>{address || userRegion(profile) || '미지정'}</strong></div>
               </div>
               {error && <div className="alert alert-error" role="alert">{error}</div>}
