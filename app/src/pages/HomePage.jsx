@@ -41,13 +41,13 @@ function HomeBody() {
   const [loading, setLoading] = useState(true)
   const [cat, setCat] = useState('전체')
 
-  async function load() {
-    setLoading(true)
+  async function load(silent = false) {
+    if (!silent) setLoading(true)
     const { data, error } = await supabase
       .from('items')
       .select('*, participants:item_participants(user_id)')
       .order('created_at', { ascending: false })
-    if (error) { setLoading(false); return }
+    if (error) { if (!silent) setLoading(false); return }
     const items = data ?? []
     // 집결 명단(닉네임/도착) 병합
     const itemIds = items.map((i) => i.id).filter(Boolean)
@@ -61,10 +61,15 @@ function HomeBody() {
       byItem[r.item_id].push(r)
     }
     setItems(items.map((i) => ({ ...i, participants: byItem[i.id] ?? i.participants ?? [] })))
-    setLoading(false)
+    if (!silent) setLoading(false)
   }
 
-  useEffect(() => { load() }, [])
+  // 최초 로드 후 10초마다 갱신 (F5 없이 새 글/상태 반영)
+  useEffect(() => {
+    load()
+    const id = setInterval(() => load(true), 10000)
+    return () => clearInterval(id)
+  }, [])
 
   const filtered = useMemo(
     () => (cat === '전체' ? items : items.filter((i) => (i.category || '기타') === cat)),
@@ -101,7 +106,7 @@ function HomeBody() {
       </div>
 
       <div className="action-row">
-        <CreateItemForm user={user} profile={profile} onCreated={load} />
+        <CreateItemForm user={user} profile={profile} onCreated={() => load(true)} />
       </div>
 
       {loading ? (
@@ -113,7 +118,7 @@ function HomeBody() {
       ) : (
         <div className="grid">
           {filtered.map((item) => (
-            <ItemCard key={item.id} item={item} onChanged={load} />
+            <ItemCard key={item.id} item={item} onChanged={() => load(true)} />
           ))}
         </div>
       )}

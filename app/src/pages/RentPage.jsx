@@ -43,20 +43,25 @@ function RentBody() {
   const [error, setError] = useState('')
   const [cat, setCat] = useState('전체')
 
-  async function load() {
-    setLoading(true)
+  async function load(silent = false) {
+    if (!silent) setLoading(true)
     setError('')
     const { data, error: err } = await supabase
       .from('rentals')
       .select('*, requester:profiles!rentals_requester_id_fkey(nickname), lender:profiles!rentals_lender_id_fkey(nickname)')
       .order('created_at', { ascending: false })
-    if (err) { setError(err.message); setLoading(false); return }
+    if (err) { if (!silent) setError(err.message); if (!silent) setLoading(false); return }
     const flat = (data ?? []).map((r) => ({ ...r, requester_nickname: r.requester?.nickname, lender_nickname: r.lender?.nickname }))
     setRentals(flat)
-    setLoading(false)
+    if (!silent) setLoading(false)
   }
 
-  useEffect(() => { load() }, [])
+  // 최초 로드 후 10초마다 갱신 (F5 없이 새 요청/매칭 상태 반영)
+  useEffect(() => {
+    load()
+    const id = setInterval(() => load(true), 10000)
+    return () => clearInterval(id)
+  }, [])
 
   const filtered = useMemo(
     () => (cat === '전체' ? rentals : rentals.filter((r) => (r.category || '기타') === cat)),
@@ -92,7 +97,7 @@ function RentBody() {
       </div>
 
       <div className="action-row">
-        <CreateRentForm user={user} profile={profile} onCreated={load} />
+        <CreateRentForm user={user} profile={profile} onCreated={() => load(true)} />
       </div>
 
       {loading ? (
@@ -108,7 +113,7 @@ function RentBody() {
       ) : (
         <div className="grid grid-2">
           {filtered.map((r) => (
-            <RentCard key={r.id} rent={r} onChanged={load} />
+            <RentCard key={r.id} rent={r} onChanged={() => load(true)} />
           ))}
         </div>
       )}
