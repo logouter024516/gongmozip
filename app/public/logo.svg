@@ -1,1 +1,27 @@
-<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="512" zoomAndPan="magnify" viewBox="0 0 384 383.999986" height="512" preserveAspectRatio="xMidYMid meet" version="1.0"><path fill="#00c6ff" d="M 192.113281 30.949219 L 317.628906 103.828125 L 277.140625 127.109375 L 192.113281 77.511719 L 107.089844 127.109375 L 66.601562 103.828125 Z M 192.113281 30.949219 " fill-opacity="1" fill-rule="nonzero"/><path fill="#0284c7" d="M 277.140625 127.109375 L 317.628906 103.828125 L 317.628906 203.023438 L 277.140625 179.746094 Z M 277.140625 127.109375 " fill-opacity="1" fill-rule="nonzero"/><path fill="#060c7f" d="M 66.601562 116.988281 L 107.089844 140.269531 L 107.089844 263.757812 L 192.113281 312.34375 L 192.113281 358.90625 L 66.601562 286.027344 Z M 66.601562 116.988281 " fill-opacity="1" fill-rule="nonzero"/><path fill="#1e3a8a" d="M 107.089844 263.757812 L 151.625 238.453125 L 192.113281 261.734375 L 192.113281 312.34375 Z M 107.089844 263.757812 " fill-opacity="1" fill-rule="nonzero"/><path fill="#2563eb" d="M 317.628906 218.207031 L 317.628906 286.027344 L 192.113281 358.90625 L 192.113281 312.34375 L 277.140625 263.757812 L 277.140625 194.925781 Z M 317.628906 218.207031 " fill-opacity="1" fill-rule="nonzero"/><path fill="#3b82f6" d="M 192.113281 312.34375 L 192.113281 261.734375 L 232.601562 238.453125 L 277.140625 263.757812 Z M 192.113281 312.34375 " fill-opacity="1" fill-rule="nonzero"/><path fill="#fde047" d="M 192.113281 187.84375 L 228.554688 209.097656 L 192.113281 230.355469 L 155.675781 209.097656 Z M 192.113281 187.84375 " fill-opacity="1" fill-rule="nonzero"/><path fill="#f59e0b" d="M 155.675781 213.148438 L 192.113281 234.402344 L 192.113281 276.917969 L 155.675781 255.660156 Z M 155.675781 213.148438 " fill-opacity="1" fill-rule="nonzero"/><path fill="#d97706" d="M 192.113281 234.402344 L 228.554688 213.148438 L 228.554688 255.660156 L 192.113281 276.917969 Z M 192.113281 234.402344 " fill-opacity="1" fill-rule="nonzero"/></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <!-- Concept 3A: Flat Multi-Color Isometric Hex Cube (No Gradient) -->
+  <g transform="translate(0, 0)">
+    <!-- Top Face (Cyan) -->
+    <polygon points="256,64 416,156 256,248 96,156" fill="#00C6FF"/>
+    
+    <!-- Left Face ('ㄱ' shape in #060C7F Navy) -->
+    <polygon points="86,176 246,268 246,448 86,356" fill="#060C7F"/>
+    
+    <!-- Right Face ('ㄷ' shape in #2563EB Royal Blue) -->
+    <polygon points="266,268 426,176 426,356 266,448" fill="#2563EB"/>
+
+    <!-- Inner Floating Tech Core (Vibrant Amber / Mint) -->
+    <!-- Floating Sub-cube / Nodes in Flat Solid -->
+    <polygon points="256,190 310,221 256,252 202,221" fill="#FDE047"/>
+    <polygon points="202,227 252,256 252,316 202,287" fill="#F59E0B"/>
+    <polygon points="260,256 310,227 310,287 260,316" fill="#D97706"/>
+    
+    <!-- Corner Tech Nodes -->
+    <circle cx="256" cy="64" r="14" fill="#38BDF8"/>
+    <circle cx="416" cy="156" r="14" fill="#60A5FA"/>
+    <circle cx="96" cy="156" r="14" fill="#3B82F6"/>
+    <circle cx="86" cy="356" r="14" fill="#1E3A8A"/>
+    <circle cx="426" cy="356" r="14" fill="#1D4ED8"/>
+    <circle cx="256" cy="448" r="14" fill="#F59E0B"/>
+  </g>
+</svg>

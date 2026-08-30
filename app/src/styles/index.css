@@ -118,9 +118,8 @@ input, select, textarea {
   font-size: var(--text-base);
   font-weight: 700;
   color: #fff;
-  background:
-    linear-gradient(180deg, var(--color-accent) 0%, var(--color-accent-strong) 100%);
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 8px 20px -8px color-mix(in oklch, var(--color-accent) 45%, transparent);
+  background: var(--color-accent);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
   transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast) var(--ease-out), filter var(--dur-fast) var(--ease-out);
 }
 .btn:hover { transform: translateY(-1px); filter: brightness(1.04); }
@@ -156,7 +155,7 @@ input, select, textarea {
 
 /* 보조 강조 버튼 — 대여/함께배송 맥락 */
 .btn-secondary {
-  background: linear-gradient(180deg, var(--color-accent-secondary) 0%, var(--color-accent-secondary) 100%);
+  background: var(--color-accent-secondary);
 }
 
 /* 작은 버튼(목록의 액션) */
@@ -704,8 +703,7 @@ html[data-theme="dark"] .auth-logo-img { filter: brightness(1.35) saturate(1.1);
   gap: var(--space-5);
   padding: var(--space-6);
   margin-bottom: var(--space-6);
-  background:
-    linear-gradient(135deg, var(--color-accent) 0%, var(--color-accent-secondary) 100%);
+  background: var(--color-accent);
   border: none;
   color: #fff;
 }
@@ -811,7 +809,7 @@ html[data-theme="dark"] .auth-logo-img { filter: brightness(1.35) saturate(1.1);
 }
 .search-badge-ai {
   color: #fff;
-  background: linear-gradient(120deg, var(--color-accent) 0%, var(--color-accent-secondary) 100%);
+  background: var(--color-accent);
   border-color: transparent;
 }
 .search-distance-hint {
@@ -847,9 +845,7 @@ html[data-theme="dark"] .auth-logo-img { filter: brightness(1.35) saturate(1.1);
   padding: var(--space-12);
   color: #fff;
   margin-bottom: var(--space-10);
-  background:
-    radial-gradient(circle at 82% 20%, rgba(255,255,255,0.16), transparent 42%),
-    linear-gradient(120deg, var(--color-accent) 0%, var(--color-accent-secondary) 100%);
+  background: var(--color-accent);
 }
 .l-hero h1 { font-size: var(--text-3xl); margin: var(--space-4) 0 var(--space-3); letter-spacing: -0.01em; }
 .l-hero p { color: rgba(255,255,255,0.85); max-width: 46ch; }
@@ -861,7 +857,15 @@ html[data-theme="dark"] .auth-logo-img { filter: brightness(1.35) saturate(1.1);
   font-size: var(--text-xs);
   font-weight: 700;
 }
-[data-theme="dark"] .l-hero p { color: #fff; }
+html[data-theme="dark"] .btn,
+html[data-theme="dark"] .btn-secondary,
+html[data-theme="dark"] .profile-card,
+html[data-theme="dark"] .search-badge-ai,
+html[data-theme="dark"] .l-hero,
+html[data-theme="dark"] .land-final {
+  background: color-mix(in oklch, var(--color-accent) 45%, #0B0C1F);
+  color: #fff;
+}
 
 /* 카테고리 필터 칩 줄 */
 .l-cat-row {
@@ -940,7 +944,7 @@ html[data-theme="dark"] .auth-logo-img { filter: brightness(1.35) saturate(1.1);
 .l-progress-fill {
   height: 100%;
   border-radius: var(--radius-full);
-  background: linear-gradient(90deg, var(--color-accent), var(--color-accent-secondary));
+  background: var(--color-accent);
   transition: width var(--dur-slow) var(--ease-out);
 }
 
@@ -954,9 +958,6 @@ html[data-theme="dark"] .auth-logo-img { filter: brightness(1.35) saturate(1.1);
 .l-price-label {
   font-size: var(--text-xs);
   color: var(--color-fg-muted);
-  background: var(--color-border);
-  border-radius: var(--radius-sm);
-  padding: 3px 8px;
   margin-top: 4px;
   white-space: nowrap;
 }
@@ -993,10 +994,10 @@ html[data-theme="dark"] .auth-logo-img { filter: brightness(1.35) saturate(1.1);
 .owner-actions .btn-danger:hover { background: color-mix(in oklch, var(--color-danger) 16%, transparent); }
 
 .l-closed-note {
-  text-align: center;
-  padding: var(--space-3);
-  border-radius: var(--radius-md);
-  background: var(--color-border);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
   color: var(--color-fg-muted);
   font-size: var(--text-sm);
   font-weight: 600;
@@ -1008,10 +1009,6 @@ html[data-theme="dark"] .auth-logo-img { filter: brightness(1.35) saturate(1.1);
   grid-template-columns: 1fr 1fr;
   gap: var(--space-4);
   margin: var(--space-5) 0;
-  padding: var(--space-4);
-  border-radius: var(--radius-md);
-  background: color-mix(in oklch, var(--color-accent-secondary) 8%, transparent);
-  border: 1px solid color-mix(in oklch, var(--color-accent-secondary) 22%, transparent);
 }
 .l-rent-info-item { display: flex; flex-direction: column; gap: 4px; }
 .l-rent-info-label { font-size: var(--text-xs); color: var(--color-fg-muted); }
@@ -1579,8 +1576,6 @@ html[data-theme="dark"] .land-logo-img { filter: brightness(1.35) saturate(1.1);
 
 .land-hero {
   padding: var(--space-16) 0 var(--space-12);
-  background:
-    radial-gradient(60% 55% at 50% 0%, color-mix(in oklch, var(--color-accent) 9%, transparent), transparent 70%);
   text-align: center;
 }
 .land-hero-in { max-width: 720px; }
@@ -1722,7 +1717,7 @@ html[data-theme="dark"] .land-logo-img { filter: brightness(1.35) saturate(1.1);
 
 .land-final {
   padding: var(--space-16) 0;
-  background: linear-gradient(180deg, var(--color-accent) 0%, var(--color-accent-strong) 100%);
+  background: var(--color-accent);
   text-align: center;
 }
 .land-final-in h2 {
