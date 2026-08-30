@@ -71,12 +71,12 @@ export default function Layout({ children }) {
             <NavLink to="/" end className="nav-link">공동구매</NavLink>
             <NavLink to="/rent" className="nav-link">대여</NavLink>
             <NavLink to="/records" className="nav-link">이용내역</NavLink>
-            <NavLink to="/search" className="nav-link">검색</NavLink>
           </nav>
 
           {/* 오른쪽: 검색/테마/프로필 */}
           <div className="nav-links">
-            <NavLink to="/search" className="icon-btn" aria-label="검색 열기" title="검색">
+            {/* 검색 — 데스크톱만(모바일은 하단 탭에 있음) */}
+            <NavLink to="/search" className="icon-btn hide-m" aria-label="검색 열기" title="검색">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle cx="11" cy="11" r="7" stroke="currentColor" strokeWidth="2" />
                 <line x1="16.5" y1="16.5" x2="21" y2="21" stroke="currentColor" strokeWidth="2" />
@@ -84,7 +84,7 @@ export default function Layout({ children }) {
             </NavLink>
 
             {/* 쪽지(채팅) — 안읽음 배지 */}
-            <NavLink to="/chat" className="icon-btn" aria-label="쪽지" title="쪽지">
+            <NavLink to="/chat" className="icon-btn hide-m" aria-label="쪽지" title="쪽지">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M21 15a2 2 0 0 1-2 2H8l-5 4V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
               </svg>
@@ -92,7 +92,7 @@ export default function Layout({ children }) {
             </NavLink>
 
             {/* 알림 — 안읽음 배지 */}
-            <NavLink to="/notifications" className="icon-btn" aria-label="알림" title="알림">
+            <NavLink to="/notifications" className="icon-btn hide-m" aria-label="알림" title="알림">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <path d="M6 9a6 6 0 1 1 12 0c0 5 2 6 2 6H4s2-1 2-6Z" stroke="currentColor" strokeWidth="2" strokeLinejoin="round" />
                 <path d="M10 20a2 2 0 0 0 4 0" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
@@ -117,7 +117,7 @@ export default function Layout({ children }) {
             </button>
 
             {/* 설정 링크(닉네임 아이콘 역할) */}
-            <NavLink to="/settings" className="icon-btn" aria-label="사용자 설정" title="사용자 설정">
+            <NavLink to="/settings" className="icon-btn hide-m" aria-label="사용자 설정" title="사용자 설정">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" aria-hidden="true">
                 <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2" />
                 <path d="M4 20c0-3.3 3.6-6 8-6s8 2.7 8 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />

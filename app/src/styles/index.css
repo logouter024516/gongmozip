@@ -470,7 +470,7 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.55; }
   gap: var(--space-2);
 }
 .brand-logo {
-  width: 22px; height: 22px;
+  width: 28px; height: 28px;
   display: block;
 }
 html[data-theme="dark"] .brand-logo { filter: brightness(1.35) saturate(1.1); }
@@ -522,6 +522,8 @@ html[data-theme="dark"] .brand-logo { filter: brightness(1.35) saturate(1.1); }
     border-top: 1px solid var(--color-border);
     padding-bottom: env(safe-area-inset-bottom); /* iPhone 홈바 대응 */
   }
+  /* 하단 탭에 이미 있는 메뉴는 상단에서 숨김(중복·겹침 방지) */
+  .icon-btn.hide-m { display: none; }
   /* 모바일에선 상단 페이지 링크 숨김(하단 탭이 대신함) */
   .nav-links-main { display: none; }
   .bottom-tab {
@@ -638,7 +640,7 @@ html[data-theme="dark"] .brand-logo { filter: brightness(1.35) saturate(1.1); }
   color: var(--color-fg);
   text-decoration: none;
 }
-.auth-logo-img { width: 30px; height: 30px; }
+.auth-logo-img { width: 34px; height: 34px; }
 html[data-theme="dark"] .auth-logo-img { filter: brightness(1.35) saturate(1.1); }
 .auth-logo:hover { text-decoration: none; }
 .auth-sub {
@@ -1393,8 +1395,6 @@ html[data-theme="dark"] .auth-logo-img { filter: brightness(1.35) saturate(1.1);
 @media (max-width: 414px) {
   .grid { grid-template-columns: 1fr; }
   .grid-2 { grid-template-columns: 1fr; }
-  .navbar-inner { height: auto; padding: var(--space-2) 0; flex-wrap: wrap; }
-  .nav-links { order: 3; width: 100%; justify-content: space-between; }
   .page-header h1 { font-size: var(--text-3xl); }
 }
 
@@ -1570,7 +1570,7 @@ html[data-theme="dark"] .auth-logo-img { filter: brightness(1.35) saturate(1.1);
   gap: var(--space-2);
 }
 .land-logo-img {
-  width: 20px; height: 20px;
+  width: 26px; height: 26px;
   display: block;
 }
 html[data-theme="dark"] .land-logo-img { filter: brightness(1.35) saturate(1.1); }
