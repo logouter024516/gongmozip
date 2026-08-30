@@ -53,6 +53,7 @@ export default function LoginPage() {
   return (
     <div className="auth-wrap">
       <div className="card auth-card">
+        <Link to="/" className="auth-back">← 공모집 소개</Link>
         <h1>공모집 로그인</h1>
         <p className="auth-sub">소규모 가구의 똑똑한 공동구매 시작하기</p>
 

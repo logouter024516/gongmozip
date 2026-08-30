@@ -96,6 +96,7 @@ export default function SignupPage() {
   return (
     <div className="auth-wrap">
       <div className="card auth-card">
+        <Link to="/" className="auth-back">← 공모집 소개</Link>
         <h1>회원가입</h1>
         <p className="auth-sub">공모집에서 함께 나누는 이웃이 되어보세요</p>
 
