@@ -17,6 +17,20 @@ export async function openThread(otherUserId, { itemId = null, rentalId = null }
   return Array.isArray(data) ? data[0] : data
 }
 
+// 공동구매 참여자 그룹채팅: 참여를 눌러야 호출 가능.
+// 같은 상품의 그룹 스레드를 재사용하고, 등록자 + 모든 참여자를 멤버로 맞춘다.
+export async function joinItemChat(itemId) {
+  const { data, error } = await supabase.rpc('join_item_chat', { target_item_id: itemId })
+  if (error) throw error
+  return Array.isArray(data) ? data[0] : data
+}
+
+// 참여 취소 시 상품의 그룹 스레드에서 탈퇴.
+export async function leaveItemChat(itemId) {
+  const { error } = await supabase.rpc('leave_item_chat', { target_item_id: itemId })
+  if (error) throw error
+}
+
 // 내 참여 스레드 목록 (뷰 chat_thread_list)
 export function fetchThreads() {
   return supabase

@@ -6,12 +6,12 @@ import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { useState } from 'react'
-import { MapPin, Users, Pencil, Trash2, MessageCircle, CheckCircle2, MapPinOff } from 'lucide-react'
+import { MapPin, Users, Pencil, Trash2, CheckCircle2, MapPinOff } from 'lucide-react'
 import CardImage from './CardImage'
 import Modal from './Modal'
 import { toast } from '../lib/toast'
 import ImageUpload from './ImageUpload'
-import { openThread } from '../lib/chat'
+import { joinItemChat, leaveItemChat } from '../lib/chat'
 import { findProfanity } from '../lib/profanity'
 
 // 카테고리 표시명
@@ -31,7 +31,6 @@ export default function ItemCard({ item, onChanged }) {
   const navigate = useNavigate()
   const [busy, setBusy] = useState(false)
   const [editing, setEditing] = useState(false)
-  const [chatting, setChatting] = useState(false)
   const [closing, setClosing] = useState(false)
   const [arriving, setArriving] = useState(false)
 
@@ -56,10 +55,19 @@ export default function ItemCard({ item, onChanged }) {
     const { error: err } = await supabase
       .from('item_participants')
       .insert({ item_id: item.id, user_id: user.id, qty: 1 })
-    setBusy(false)
-    if (err) { toast('참여하지 못했어요', { type: 'error' }); return }
-    toast('공동구매에 참여했어요!')
-    if (onChanged) onChanged()
+    if (err) { setBusy(false); toast('참여하지 못했어요', { type: 'error' }); return }
+    // 참여 즉시 참여자(＋등록자) 그룹채팅으로 이동
+    try {
+      const thread = await joinItemChat(item.id)
+      setBusy(false)
+      toast('공동구매에 참여했어요. 참여자와 대화를 시작해요!')
+      if (onChanged) onChanged()
+      navigate(`/chat/${thread.id}`)
+    } catch (e) {
+      setBusy(false)
+      toast('참여했어요!')
+      if (onChanged) onChanged()
+    }
   }
 
   async function leave() {
@@ -72,6 +80,7 @@ export default function ItemCard({ item, onChanged }) {
       .eq('user_id', user.id)
     setBusy(false)
     if (err) { toast('처리하지 못했어요', { type: 'error' }); return }
+    try { await leaveItemChat(item.id) } catch (e) { /* 그룹채팅 탈퇴는 실패해도 참여 취소는 유지 */ }
     toast('참여를 취소했어요')
     if (onChanged) onChanged()
   }
@@ -84,19 +93,6 @@ export default function ItemCard({ item, onChanged }) {
     if (err) { toast('삭제하지 못했어요', { type: 'error' }); return }
     toast('삭제했어요')
     if (onChanged) onChanged()
-  }
-
-  // 등록자와 쪽지 스레드 열기 (내 매칭/문의)
-  async function startChat() {
-    if (!user) { navigate('/login'); return }
-    setChatting(true)
-    try {
-      const thread = await openThread(item.created_by, { itemId: item.id })
-      navigate(`/chat/${thread.id}`)
-    } catch (e) {
-      toast('쪽지를 시작하지 못했어요', { type: 'error' })
-    }
-    setChatting(false)
   }
 
   // 주최자가 모집 마감 (목표 미달이라도 일찍 마감 가능)
@@ -245,14 +241,6 @@ export default function ItemCard({ item, onChanged }) {
               </button>
             ) : null}
           </div>
-        )}
-
-        {/* 등록자에게 쪽지(문의) — 본인 제외 */}
-        {user && !isOwner && (
-          <button type="button" className="btn btn-outline btn-block chat-call-btn" onClick={startChat} disabled={chatting}>
-            <MessageCircle size={15} strokeWidth={2.2} />
-            {chatting ? '열기 중…' : '등록자에게 쪽지'}
-          </button>
         )}
 
         {/* 만든 이 전용: 수정/삭제 */}
