@@ -62,8 +62,8 @@ export default function Layout({ children }) {
         <div className="container navbar-inner">
           {/* 로고 → 홈으로 */}
           <Link to="/" className="brand">
-            <span className="brand-dot" aria-hidden="true" />
-            공모집
+            <img src="/assets/logo.svg" alt="공모집 로고" className="brand-logo" aria-hidden="true" />
+            <span>공모집</span>
           </Link>
 
           {/* 페이지 링크들 */}

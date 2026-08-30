@@ -469,11 +469,11 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.55; }
   align-items: center;
   gap: var(--space-2);
 }
-.brand-dot {
-  width: 10px; height: 10px;
-  border-radius: var(--radius-full);
-  background: var(--color-accent);
+.brand-logo {
+  width: 22px; height: 22px;
+  display: block;
 }
+html[data-theme="dark"] .brand-logo { filter: brightness(1.35) saturate(1.1); }
 .nav-links {
   display: flex;
   align-items: center;
@@ -1023,6 +1023,47 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.55; }
 .l-action-stack { display: flex; flex-direction: column; gap: var(--space-2); margin-top: var(--space-3); }
 .l-action-row { display: grid; grid-template-columns: 1fr 1fr; gap: var(--space-2); }
 
+/* 대여 제안(빌려드릴게요) 목록 */
+.rent-offers { display: flex; flex-direction: column; gap: var(--space-2); }
+.rent-offer {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  background: var(--color-bg-elevated);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  padding: var(--space-3);
+}
+.rent-offer-head { display: flex; align-items: center; justify-content: space-between; gap: var(--space-2); }
+.rent-offer-nick {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: 700;
+  color: var(--color-fg);
+}
+.rent-offer-msg {
+  font-size: var(--text-sm);
+  color: var(--color-fg-muted);
+  line-height: 1.5;
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+}
+.chat-call-tiny {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  font-size: var(--text-xs);
+  padding: var(--space-1) var(--space-2);
+  border: none;
+  background: transparent;
+  color: var(--color-accent-secondary);
+  font-weight: 600;
+  cursor: pointer;
+}
+
 /* 이용내역 타임라인 */
 .rec-timeline { display: flex; flex-direction: column; gap: var(--space-3); }
 .rec-item {
@@ -1379,6 +1420,7 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.55; }
   gap: var(--space-2);
   margin-bottom: var(--space-4);
 }
+.step-tiles-3 { grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
 .step-tile {
   display: flex;
   flex-direction: column;
@@ -1509,7 +1551,15 @@ textarea { min-height: 96px; resize: vertical; line-height: 1.55; }
   font-weight: 800;
   color: var(--color-fg);
   letter-spacing: -0.02em;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
 }
+.land-logo-img {
+  width: 20px; height: 20px;
+  display: block;
+}
+html[data-theme="dark"] .land-logo-img { filter: brightness(1.35) saturate(1.1); }
 .land-logo:hover { text-decoration: none; }
 .land-nav { display: flex; align-items: center; gap: var(--space-3); }
 

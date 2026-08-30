@@ -1,6 +1,6 @@
 // pages/RentPage.jsx — 대여 연결 페이지
-// 장기 보유가 필요 없는 물건을 이웃끼리 단기 대여하는 시스템.
-// 등록 → 대여 신청(reserved) → 승인(on_loan) → 반납 확인(returned) → 재등록 흐름.
+// 필요한 물건을 '빌리고 싶어요' 요청 중심으로 등록 → 이웃이 '빌려드릴게요' 제안 → 요청자 승인.
+// 흐름: open(모집 중) → matched(매칭) → in_use(대여 중) → done(반납 완료) → 재모집 가능.
 
 import { useEffect, useMemo, useRef, useState } from 'react'
 import ProtectedRoute from '../components/ProtectedRoute'
@@ -81,8 +81,8 @@ function CreateRentForm({ user, profile, onCreated }) {
         category: category || '기타',
         image_url: imageUrl.trim(),
         address: address.trim(),
-        lender_id: currentUser.id,
-        status: 'available',
+        requester_id: currentUser.id,
+        status: 'open',
         latitude: lat,
         longitude: lng,
         starts_on: startsOn || null,
@@ -92,28 +92,28 @@ function CreateRentForm({ user, profile, onCreated }) {
     if (err) { setError(err.message); return }
     reset()
     setShow(false)
-    toast('물건을 등록했어요!')
+    toast('빌리고 싶은 물건을 올렸어요!')
     if (onCreated) onCreated()
   }
 
   return (
     <>
       <button type="button" className="btn btn-secondary l-btn-mobile-hide" onClick={() => setShow(true)}>
-        <Plus size={18} strokeWidth={2.4} /> 물건 빌려주기
+        <Plus size={18} strokeWidth={2.4} /> 빌리고 싶어요
       </button>
-      <button type="button" className="fab" onClick={() => setShow(true)} aria-label="물건 빌려주기">
+      <button type="button" className="fab" onClick={() => setShow(true)} aria-label="빌리고 싶어요">
         <Plus size={24} strokeWidth={2.4} />
       </button>
 
-      <Modal open={show} title="물건 빌려주기" onClose={() => setShow(false)}>
+      <Modal open={show} title="빌리고 싶어요" onClose={() => setShow(false)}>
         <form onSubmit={handleSubmit}>
           <div className="field">
-            <label htmlFor="rname">물품 이름</label>
+            <label htmlFor="rname">필요한 물건 이름</label>
             <input id="rname" value={name} required onChange={(e) => setName(e.target.value)} placeholder="예: 전동 드릴" />
           </div>
           <div className="field-grid">
             <div className="field">
-              <label htmlFor="rprice">일일 대여료(원)</label>
+              <label htmlFor="rprice">하루 이용료(원)</label>
               <input id="rprice" type="number" min="0" value={pricePerDay} onChange={(e) => setPricePerDay(e.target.value)} placeholder="5000" />
             </div>
             <div className="field">
@@ -129,17 +129,17 @@ function CreateRentForm({ user, profile, onCreated }) {
           </div>
           <div className="field-grid">
             <div className="field">
-              <label htmlFor="rstart">대여 가능 시작일(선택)</label>
+              <label htmlFor="rstart">필요한 시작일(선택)</label>
               <input id="rstart" type="date" value={startsOn} onChange={(e) => setStartsOn(e.target.value)} />
             </div>
             <div className="field">
-              <label htmlFor="rend">종료일(선택)</label>
+              <label htmlFor="rend">반납 예정일(선택)</label>
               <input id="rend" type="date" value={endsOn} onChange={(e) => setEndsOn(e.target.value)} />
             </div>
           </div>
           <div className="field">
             <label>대표 이미지</label>
-            <ImageUpload value={imageUrl} onChange={setImageUrl} hint="사진을 올리면 자동으로 표시돼요. 비우면 색상 카드가 나와요." />
+            <ImageUpload value={imageUrl} onChange={setImageUrl} hint="찾고 있는 물건 사진을 올리면 더 잘 매칭돼요. 비우면 색상 카드가 나와요." />
           </div>
           <div className="field">
             <label htmlFor="raddr">상세 위치(선택)</label>
@@ -152,12 +152,12 @@ function CreateRentForm({ user, profile, onCreated }) {
             <span className="field-hint">내 위치(브라우저 설정) 기준 주소가 자동으로 채워져요. 동·호수 등은 직접 보완하세요.</span>
           </div>
           <div className="field">
-            <label htmlFor="rdesc">설명(대여 조건 등)</label>
-            <textarea id="rdesc" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="예: 주말 대여 가능, 배터리 포함, 사용 전 점검 필요" />
+            <label htmlFor="rdesc">설명(언제·얼마나 필요한지, 찾아갈 수 있는 곳 등)</label>
+            <textarea id="rdesc" value={desc} onChange={(e) => setDesc(e.target.value)} placeholder="예: 주말 2일 동안 쓰려고요. 상암동 아파트로 직접 찾아가도 돼요." />
           </div>
           {error && <div className="alert alert-error" role="alert">{error}</div>}
           <button type="submit" className="btn btn-secondary btn-block" disabled={busy}>
-            {busy ? '등록 중…' : '등록하기'}
+            {busy ? '올리는 중…' : '빌리고 싶어요 올리기'}
           </button>
         </form>
       </Modal>
@@ -177,10 +177,10 @@ function RentBody() {
     setError('')
     const { data, error: err } = await supabase
       .from('rentals')
-      .select('*, lender:profiles!rentals_lender_id_fkey(nickname)')
+      .select('*, requester:profiles!rentals_requester_id_fkey(nickname), lender:profiles!rentals_lender_id_fkey(nickname)')
       .order('created_at', { ascending: false })
     if (err) { setError(err.message); setLoading(false); return }
-    const flat = (data ?? []).map((r) => ({ ...r, lender_nickname: r.lender?.nickname }))
+    const flat = (data ?? []).map((r) => ({ ...r, requester_nickname: r.requester?.nickname, lender_nickname: r.lender?.nickname }))
     setRentals(flat)
     setLoading(false)
   }
@@ -196,7 +196,7 @@ function RentBody() {
     <div className="container page">
       <div className="page-header">
         <h1>대여 연결</h1>
-        <p>잠깐만 필요한 물건, 사지 말고 이웃에게 빌리세요. 쓰지 않는 물건은 빌려주고 이웃과 나누세요.</p>
+        <p>잠깐 필요한 물건은 사지 말고 '빌리고 싶어요'를 올려보세요. 쓰지 않는 물건이 있으면 이웃에게 제안해보세요.</p>
       </div>
 
       <div className="l-cat-row" role="tablist" aria-label="카테고리 필터">
@@ -226,7 +226,7 @@ function RentBody() {
         </div>
       ) : filtered.length === 0 ? (
         <div className="search-empty">
-          {cat === '전체' ? '아직 대여 가능한 물건이 없어요. 처음으로 빌려주는 이웃이 되어보세요!' : `'${cat}' 카테고리에 물건이 아직 없어요.`}
+          {cat === '전체' ? '아직 대여 요청이 없어요. 필요한 물건을 먼저 올려보세요!' : `'${cat}' 카테고리에 대여 요청이 아직 없어요.`}
         </div>
       ) : (
         <div className="grid grid-2">

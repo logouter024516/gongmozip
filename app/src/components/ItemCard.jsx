@@ -177,7 +177,7 @@ export default function ItemCard({ item, onChanged }) {
         <div className="l-progress">
           <div className="l-progress-top">
             <span><Users size={13} strokeWidth={2} /> 집합 현황</span>
-            <strong>{participantCount}명 / {target > 0 ? `${target}명` : '—'}</strong>
+            <strong>{participantCount}명 / {target > 0 ? `${target}명` : '무제한'}</strong>
           </div>
           {target > 0 && (
             <div className="l-progress-bar">
@@ -360,6 +360,7 @@ function EditItemModal({ open, item, onClose, onSaved }) {
           <div className="field">
             <label htmlFor={`itarget-${item.id}`}>모집 인원(명)</label>
             <input id={`itarget-${item.id}`} type="number" min="0" value={target} onChange={(e) => setTarget(e.target.value)} />
+            <span className="field-hint">0으로 두면 인원 제한 없는 모집이에요.</span>
           </div>
         </div>
         <div className="field">

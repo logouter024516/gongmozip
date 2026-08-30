@@ -18,6 +18,7 @@ async function fetchProfile(id) {
 }
 
 // 프로필이 없으면 자동 생성한다(트리거가 없는 환경에서도 FK 깨짐 방지).
+// 계정이 DB에서 사라진 경우 등 생성 실패 시 null을 돌려준다(→ 자동 로그아웃).
 async function ensureProfile(id, email) {
   const existing = await fetchProfile(id)
   if (existing) return existing
@@ -32,7 +33,7 @@ async function ensureProfile(id, email) {
     .select('*')
     .maybeSingle()
 
-  if (error || !data) return { id, nickname }
+  if (error || !data) return null
   return data
 }
 
@@ -54,6 +55,13 @@ export function AuthProvider({ children }) {
     if (syncingRef.current === u.id) return
     syncingRef.current = u.id
     const p = await ensureProfile(u.id, u.email)
+    // 프로필을 만들 수 없으면(계정 삭제 등) 세션을 정리해 무한 온보딩/로딩을 막는다.
+    if (!p) {
+      await supabase.auth.signOut()
+      setUser(null)
+      setProfile(null)
+      return
+    }
     setProfile(p)
   }
 

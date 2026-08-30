@@ -12,8 +12,8 @@ const buyPoints = [
 ]
 
 const rentPoints = [
-  '공구 · 캠핑 등 가끔 필요한 물건을 빌려요',
-  '기간을 정해 신청하고, 승인받고, 반납해요',
+  '빌리고 싶은 물건을 올리면, 이웃이 "빌려드릴게요"라고 제안해요',
+  '마음에 드는 제안을 고르면 매칭, 대여 → 반납까지 이어져요',
   '같은 동네라서 주고받기도 부담이 없어요',
 ]
 
@@ -22,7 +22,7 @@ export default function LandingPage() {
     <div className="landing">
       <header className="land-header">
         <div className="container land-header-in">
-          <Link to="/" className="land-logo">공모집</Link>
+          <Link to="/" className="land-logo"><img src="/assets/logo.svg" alt="" className="land-logo-img" aria-hidden="true" />공모집</Link>
           <nav className="land-nav">
             <Link to="/login" className="btn btn-outline btn-sm">로그인</Link>
             <Link to="/signup" className="btn btn-sm">시작하기</Link>
@@ -65,7 +65,7 @@ export default function LandingPage() {
             <li className="land-step">
               <span className="land-step-num" aria-hidden="true">02</span>
               <h3>이웃과 모으기</h3>
-              <p>원하는 인원이 모이거나, 정한 시각까지 모집해요.</p>
+              <p>원하는 인원이 모이거나, 정한 시각까지. 제한 없이도 모집할 수 있어요.</p>
             </li>
             <li className="land-step">
               <span className="land-step-num" aria-hidden="true">03</span>
@@ -114,7 +114,7 @@ export default function LandingPage() {
 
       <footer className="land-footer">
         <div className="container land-footer-in">
-          <span className="land-logo">공모집</span>
+          <span className="land-logo"><img src="/assets/logo.svg" alt="" className="land-logo-img" aria-hidden="true" />공모집</span>
           <span className="land-footer-note">소규모 가구를 위한 동네 나눔</span>
           <span className="land-footer-copy">© 2026 공모집</span>
         </div>

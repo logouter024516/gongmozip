@@ -62,10 +62,10 @@ function SearchBody() {
         const pat = `%${q}%`
         const [itemRes, rentRes] = await Promise.all([
           supabase.from('items').select('*, participants:item_participants(user_id)').or(`name.ilike.${pat},region.ilike.${pat}`).order('created_at', { ascending: false }),
-          supabase.from('rentals').select('*, lender:profiles!rentals_lender_id_fkey(nickname)').ilike('name', pat).order('created_at', { ascending: false }),
+          supabase.from('rentals').select('*, requester:profiles!rentals_requester_id_fkey(nickname), lender:profiles!rentals_lender_id_fkey(nickname)').ilike('name', pat).order('created_at', { ascending: false }),
         ])
         const localItems = itemRes.error ? [] : (itemRes.data ?? [])
-        const localRentals = rentRes.error ? [] : (rentRes.data ?? []).map((r) => ({ ...r, lender_nickname: r.lender?.nickname }))
+        const localRentals = rentRes.error ? [] : (rentRes.data ?? []).map((r) => ({ ...r, requester_nickname: r.requester?.nickname, lender_nickname: r.lender?.nickname }))
         out = {
           items: sortByDistance(localItems, coords),
           rentals: sortByDistance(localRentals, coords),

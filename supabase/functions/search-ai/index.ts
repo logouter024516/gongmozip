@@ -168,7 +168,7 @@ Deno.serve(async (req) => {
     if (parsed?.price_max > 0) itemQuery = itemQuery.lte('price', parsed.price_max)
 
     // rentals(query)
-    let rentQuery = supabase.from('rentals').select('*, lender:profiles!rentals_lender_id_fkey(nickname)')
+    let rentQuery = supabase.from('rentals').select('*, requester:profiles!rentals_requester_id_fkey(nickname), lender:profiles!rentals_lender_id_fkey(nickname)')
     const rentOrs = []
     if (kw.length) rentOrs.push(...kw.map((k) => `name.ilike.%${k}%`))
     if (kw.length) rentQuery = rentQuery.or(rentOrs.join(','))
@@ -177,7 +177,7 @@ Deno.serve(async (req) => {
     const [itemsRes, rentRes] = await Promise.all([itemQuery.order('created_at', { ascending: false }), rentQuery.order('created_at', { ascending: false })])
 
     let items = itemsRes.data ?? []
-    let rentals = (rentRes.data ?? []).map((r) => ({ ...r, lender_nickname: r.lender?.nickname }))
+    let rentals = (rentRes.data ?? []).map((r) => ({ ...r, requester_nickname: r.requester?.nickname, lender_nickname: r.lender?.nickname }))
     if (parsed?.is_rental === true) items = []
     items = sortByDistance(items, userPos)
     rentals = sortByDistance(rentals, userPos)

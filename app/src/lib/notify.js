@@ -54,10 +54,10 @@ export const NOTIFY_TYPE = {
   pickup: '집결 안내',
   item_arrival: '도착',
   chat: '쪽지',
-  rent_request: '대여 신청',
-  rent_approved: '대여 승인',
+  rent_offer: '대여 제안',
+  rent_accepted: '매칭 완료',
+  rent_start: '대여 시작',
   rent_returned: '반납 완료',
-  rent_relisted: '재등록',
   system: '알림',
 }
 

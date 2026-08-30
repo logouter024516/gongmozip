@@ -11,6 +11,7 @@ import Layout from '../components/Layout'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { getBrowserPosition, nearestRegion, REGION_COORDS } from '../lib/location'
+import { reverseGeocode } from '../lib/geocode'
 
 const REGION_KEYS = Object.keys(REGION_COORDS)
 
@@ -40,7 +41,9 @@ function OnboardBody() {
     try {
       const p = await getBrowserPosition()
       setPos(p)
-      setLabel(nearestRegion(p.lat, p.lng) ?? '')
+      // 동 단위까지 뒤져오고, 실패하면 기존 시/도 근방 라벨로 폴백
+      const addr = await reverseGeocode(p.lat, p.lng)
+      setLabel(addr || (nearestRegion(p.lat, p.lng) ?? ''))
     } catch (e) {
       setError(e.message)
       setManual(true)
@@ -57,9 +60,11 @@ function OnboardBody() {
       .from('profiles')
       .update({ ...extra, onboarded: true })
       .eq('id', user.id)
+    if (err) { setBusy(false); setError(err.message); return }
+    // 저장이 실제 반영됐는지 프로필로 재확인 (안 되면 로그인 세션 문제 → 무한 루프 방지)
+    const p = await refreshProfile()
     setBusy(false)
-    if (err) { setError(err.message); return }
-    await refreshProfile()
+    if (!p?.onboarded) { setError('프로필을 저장하지 못했어요. 잠시 후 다시 시도해주세요.'); return }
     navigate('/', { replace: true })
   }
 
@@ -87,7 +92,7 @@ function OnboardBody() {
             >
               {locating ? '위치 확인 중…' : '내 위치 사용하기'}
             </button>
-            <p className="field-hint">브라우저 위치 권한을 허용하면 지금 계신 곳으로 자동 설정돼요. 가까운 이웃과 매칭에 쓰여요.</p>
+            <p className="field-hint">브라우저 위치 권한을 허용하면 지금 계신 곳을 동 단위(예: 경기도 부천시 중동)로 찾아 자동 설정해요. 가까운 이웃과 매칭에 쓰여요.</p>
           </div>
         )}
 
@@ -95,7 +100,7 @@ function OnboardBody() {
         {pos && (
           <div className="field" style={{ marginTop: 'var(--space-4)' }}>
             <div className="onb-loc-preview">
-              {label ? `내 동네: ${label} 근처` : '좌표 확인 완료 (가까운 동네 라벨이 없음)'}
+              {label ? `내 동네: ${label}` : '좌표 확인 완료 (주소를 자동으로 찾지 못했어요)'}
             </div>
             <button
               type="button"
@@ -117,7 +122,7 @@ function OnboardBody() {
               list="onb-regions"
               value={label}
               onChange={(e) => setLabel(e.target.value)}
-              placeholder="예: 제주시, 부산, 서울"
+              placeholder="예: 경기도 부천시 중동"
             />
             <datalist id="onb-regions">
               {REGION_KEYS.map((r) => <option key={r} value={r} />)}

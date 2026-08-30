@@ -186,9 +186,11 @@ function CreateItemForm({ user, profile, onCreated }) {
 
   const priceLabel = calcs.price > 0 ? `${calcs.price.toLocaleString()}원` : '나중에 정해요'
   const shipLabel = priceMode === 'later' ? '나중에 정해요' : calcs.shippingCost > 0 ? `${calcs.shippingCost.toLocaleString()}원` : '없음'
-  const closeLabel = closeMode === 'deadline'
-    ? (permanent || !closeAt ? '영구(무기한)' : `모집 ${fmtDeadline(closeAt)}까지`)
-    : `인원 ${target}명`
+  const closeLabel = closeMode === 'none'
+    ? '제한 없음'
+    : closeMode === 'deadline'
+      ? (permanent || !closeAt ? '영구(무기한)' : `모집 ${fmtDeadline(closeAt)}까지`)
+      : `인원 ${target}명`
 
   return (
     <>
@@ -305,7 +307,7 @@ function CreateItemForm({ user, profile, onCreated }) {
 
           {step === 3 && (
             <>
-              <div className="step-tiles">
+              <div className="step-tiles step-tiles-3">
                 <button type="button" className={`step-tile${closeMode === 'head' ? ' sel' : ''}`} onClick={() => setCloseMode('head')}>
                   <Users size={20} strokeWidth={1.8} />
                   <strong>인원이 차면</strong>
@@ -316,16 +318,37 @@ function CreateItemForm({ user, profile, onCreated }) {
                   <strong>기간까지</strong>
                   <span>정한 시각까지 모집해요 (영구도 가능)</span>
                 </button>
+                <button type="button" className={`step-tile${closeMode === 'none' ? ' sel' : ''}`} onClick={() => setCloseMode('none')}>
+                  <Infinity size={20} strokeWidth={1.8} />
+                  <strong>제한없음</strong>
+                  <span>인원·기간 제한 없이 모집해요</span>
+                </button>
               </div>
 
               {closeMode === 'head' && (
                 <div className="wiz-panel">
-                  <div className="stepper stepper-lg">
-                    <button type="button" onClick={() => setTarget((t) => Math.max(2, t - 1))} aria-label="인원 줄이기"><Minus size={20} strokeWidth={2.4} /></button>
-                    <b className="stepper-num">{target}명</b>
-                    <button type="button" onClick={() => setTarget((t) => Math.min(99, t + 1))} aria-label="인원 늘리기"><Plus size={20} strokeWidth={2.4} /></button>
+                  <div className="field">
+                    <label htmlFor="itarget">모집 인원(명)</label>
+                    <input
+                      id="itarget"
+                      type="number"
+                      min="2"
+                      max="99"
+                      inputMode="numeric"
+                      value={target}
+                      onChange={(e) => setTarget(Math.max(2, Math.min(99, Math.round(Number(e.target.value) || 2))))}
+                    />
+                    <p className="field-hint">이만큼 모이면 함께배송을 시작해요.</p>
                   </div>
-                  <p className="field-hint wiz-center-hint">이만큼 모이면 함께배송을 시작해요. 목표를 바꾸려면 뒤로 가세요.</p>
+                </div>
+              )}
+
+              {closeMode === 'none' && (
+                <div className="wiz-panel">
+                  <div className="l-addr-card">
+                    <p className="l-addr-main"><Infinity size={15} strokeWidth={2} /> 제한 없이 모집</p>
+                    <p className="field-hint">인원·기간 제한 없이 계속 모집하고, 원할 때 직접 마감해요.</p>
+                  </div>
                 </div>
               )}
 

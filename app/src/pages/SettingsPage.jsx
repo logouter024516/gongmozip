@@ -7,6 +7,7 @@ import Layout from '../components/Layout'
 import { supabase } from '../lib/supabase'
 import { useAuth } from '../context/AuthContext'
 import { getBrowserPosition, nearestRegion } from '../lib/location'
+import { reverseGeocode } from '../lib/geocode'
 import { useTheme } from '../lib/theme'
 import { findProfanity } from '../lib/profanity'
 
@@ -42,8 +43,9 @@ function SettingsBody() {
       const pos = await getBrowserPosition()
       setLat(pos.lat)
       setLng(pos.lng)
-      const near = nearestRegion(pos.lat, pos.lng)
-      if (near) setLocation(near)
+      // 동 단위까지 뒤져오고, 실패하면 기존 시/도 근방 라벨로 폴백
+      const addr = await reverseGeocode(pos.lat, pos.lng)
+      setLocation(addr || nearestRegion(pos.lat, pos.lng) || '')
       setSaved(true)
       setTimeout(() => setSaved(false), 2000)
     } catch (e) {
@@ -115,7 +117,7 @@ function SettingsBody() {
                 onChange={(e) => { setLocation(e.target.value); setLat(null); setLng(null) }}
                 aria-label="동네"
                 className="nick-input"
-                placeholder="예: 제주시"
+                placeholder="예: 경기도 부천시 중동"
               />
               <button
                 type="button"
@@ -130,7 +132,7 @@ function SettingsBody() {
             <div className="settings-desc">
               {lat != null && lng != null
                 ? '지금 계신 곳(브라우저 위치)의 좌표로 설정돼요. 직접 고치면 좌표는 해제돼요.'
-                : '버튼을 누르면 브라우저 위치(geolocation)로 가까운 동네를 자동 설정해요.'}
+                : '버튼을 누르면 브라우저 위치(geolocation)로 동 단위(예: 경기도 부천시 중동)까지 자동 설정해요.'}
             </div>
           </div>
           <div className="settings-row">

@@ -31,13 +31,17 @@ function RecordsBody() {
           .order('created_at', { ascending: false }),
         supabase
           .from('rentals')
-          .select('*, lender:profiles!rentals_lender_id_fkey(nickname)')
-          .or(`lender_id.eq.${user.id},borrower_id.eq.${user.id}`)
+          .select('*, requester:profiles!rentals_requester_id_fkey(nickname), lender:profiles!rentals_lender_id_fkey(nickname)')
+          .or(`requester_id.eq.${user.id},lender_id.eq.${user.id}`)
           .order('created_at', { ascending: false }),
       ])
       if (!pRes.error) setParts(pRes.data ?? [])
       if (!rRes.error) {
-        const flat = (rRes.data ?? []).map((r) => ({ ...r, lender_nickname: r.lender?.nickname }))
+        const flat = (rRes.data ?? []).map((r) => ({
+          ...r,
+          requester_nickname: r.requester?.nickname,
+          lender_nickname: r.lender?.nickname,
+        }))
         setRents(flat)
       }
       setLoading(false)
@@ -75,7 +79,14 @@ function RecordsBody() {
           ))}
 
           {rents.map((r) => {
+            const isRequester = r.requester_id === user?.id
             const isLender = r.lender_id === user?.id
+            const statusLabel = {
+              open: '모집 중', matched: '매칭 완료', in_use: '대여 중', done: '반납 완료',
+            }[r.status] || r.status
+            const counterpart = isRequester
+              ? (r.lender_nickname ? `${r.lender_nickname} 님에게 빌려요` : '아직 이웃을 기다려요')
+              : (r.requester_nickname ? `${r.requester_nickname} 님에게 빌려드려요` : '요청자와 매칭돼요')
             return (
               <div key={`r-${r.id}`} className="rec-item">
                 <div className={`rec-icon ${isLender ? 'rec-icon-rent-out' : 'rec-icon-rent'}`}>
@@ -83,11 +94,11 @@ function RecordsBody() {
                 </div>
                 <div className="rec-body">
                   <div className="rec-top">
-                    <strong>{isLender ? '빌려준 물건' : '대여한 물건'}</strong>
+                    <strong>{isLender ? '빌려준 물건' : (isRequester ? '대여 요청' : '대여')}</strong>
                     <span className="rec-date">{fmtDate(r.created_at)}</span>
                   </div>
                   <div className="rec-title">{r.name}</div>
-                  <span className="chip">{isLender ? `${r.lender_nickname || '나'} · 빌려줌` : (r.status === 'on_loan' ? '대여 중' : '반납')}</span>
+                  <span className="chip">{statusLabel} · {counterpart}</span>
                 </div>
               </div>
             )
