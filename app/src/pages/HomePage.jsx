@@ -14,7 +14,6 @@ import ImageUpload from '../components/ImageUpload'
 import { getBrowserPosition, regionCoords, userRegion } from '../lib/location'
 import { findProfanity } from '../lib/profanity'
 import { reverseGeocode } from '../lib/geocode'
-import { fetchCoupangProduct } from '../lib/coupang'
 
 const CATEGORIES = ['전체', '식품·신선', '생활용품', '도서·산간', '기타']
 
@@ -28,8 +27,6 @@ function CreateItemForm({ user, profile, onCreated }) {
   const [category, setCategory] = useState('식품·신선')
   const [imageUrl, setImageUrl] = useState('')
   const [address, setAddress] = useState('')
-  const [coupangUrl, setCoupangUrl] = useState('')
-  const [coupangBusy, setCoupangBusy] = useState(false)
   const [busy, setBusy] = useState(false)
   const [error, setError] = useState('')
   const [coords, setCoords] = useState(null)
@@ -81,27 +78,9 @@ function CreateItemForm({ user, profile, onCreated }) {
       })
     setBusy(false)
     if (err) { setError(err.message); return }
-    setName(''); setPrice(''); setShipping(''); setQty('1'); setTarget('4'); setCategory('식품·신선'); setImageUrl(''); setAddress(''); addressRef.current = ''; setCoupangUrl(''); setShow(false)
+    setName(''); setPrice(''); setShipping(''); setQty('1'); setTarget('4'); setCategory('식품·신선'); setImageUrl(''); setAddress(''); addressRef.current = ''; setShow(false)
     toast('공동구매를 등록했어요!')
     if (onCreated) onCreated()
-  }
-
-  // 쿠팡 링크 → 물품 이름/가격/이미지 자동 입력 (Edge Function 사용)
-  async function applyCoupang() {
-    const u = coupangUrl.trim()
-    if (!u) { setError('쿠팡 상품 링크를 입력해주세요.'); return }
-    setCoupangBusy(true)
-    setError('')
-    try {
-      const info = await fetchCoupangProduct(u)
-      if (info.name) setName(info.name)
-      if (info.price) setPrice(String(info.price))
-      if (info.imageUrl) setImageUrl(info.imageUrl)
-      toast('쿠팡 상품 정보를 가져왔어요. 확인 후 등록해주세요!')
-    } catch (err) {
-      setError(err.message)
-    }
-    setCoupangBusy(false)
   }
 
   return (
@@ -115,22 +94,6 @@ function CreateItemForm({ user, profile, onCreated }) {
 
       <Modal open={show} title="공동구매 만들기" onClose={() => setShow(false)}>
         <form onSubmit={handleSubmit}>
-          <div className="field well">
-            <label htmlFor="icoupang">쿠팡 링크로 물품 정보 가져오기(선택)</label>
-            <div style={{ display: 'flex', gap: 'var(--space-2)' }}>
-              <input
-                id="icoupang"
-                style={{ flex: 1 }}
-                value={coupangUrl}
-                onChange={(e) => setCoupangUrl(e.target.value)}
-                placeholder="https://www.coupang.com/vp/products/…"
-              />
-              <button type="button" className="btn btn-outline btn-sm" onClick={applyCoupang} disabled={coupangBusy}>
-                {coupangBusy ? '가져오는 중…' : '가져오기'}
-              </button>
-            </div>
-            <span className="field-hint">링크만 넣으면 이름·가격·이미지가 자동으로 채워져요. 금액은 총 가격으로 확인해주세요.</span>
-          </div>
           <div className="field">
             <label htmlFor="iname">물품 이름</label>
             <input id="iname" value={name} required onChange={(e) => setName(e.target.value)} placeholder="예: 제주 감귤 5kg" />

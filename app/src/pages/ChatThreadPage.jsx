@@ -60,13 +60,14 @@ function ThreadBody() {
       .select('id, body, sender_id, created_at')
       .eq('thread_id', id)
       .order('created_at', { ascending: true })
-    if (error) return
+    if (error) { setLoading(false); return }
     setMessages((prev) => {
       // 새 메시지가 도착하면 읽음 처리하고, 실시간 수신과 병합(중복 방지)한다.
       if (data.length > prev.length) markThreadRead(id, myId)
       if (data.length === prev.length && prev.every((m, i) => m.id === data[i]?.id)) return prev
       return data ?? []
     })
+    setLoading(false)
   }
 
   useEffect(() => {
