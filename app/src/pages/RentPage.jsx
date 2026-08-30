@@ -192,12 +192,18 @@ function RentBody() {
     [rentals, cat]
   )
 
+  const displayName = profile?.nickname || user?.email?.split('@')[0] || '이웃'
+
   return (
     <div className="container page">
-      <div className="page-header">
-        <h1>대여 연결</h1>
-        <p>잠깐 필요한 물건은 사지 말고 '빌리고 싶어요'를 올려보세요. 쓰지 않는 물건이 있으면 이웃에게 제안해보세요.</p>
-      </div>
+      {/* 히어로 배너(대여 연결) */}
+      <section className="l-hero l-hero-rent">
+        <div>
+          <span className="l-hero-badge">대여 연결</span>
+          <h1>일 년에 두 번 쓸 물건은 <br />이웃에게 빌려 쓰세요</h1>
+          <p>{displayName}님, 필요한 물건은 '빌리고 싶어요'로, 안 쓰는 물건은 이웃에게 제안해보세요.</p>
+        </div>
+      </section>
 
       <div className="l-cat-row" role="tablist" aria-label="카테고리 필터">
         {CATEGORIES.map((c) => (
